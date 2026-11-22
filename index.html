@@ -39,6 +39,11 @@ textarea{min-height:240px;font-size:13px;font-family:ui-monospace,Menlo,monospac
 .chdone{color:var(--cy);font-size:15px;margin:8px 0 0}
 .plus{display:flex;gap:8px;margin-top:8px}.pl{flex:1;padding:12px;border:1px solid var(--line);background:transparent;color:var(--tx);font:700 18px "Cinzel",serif;border-radius:0}.pl.on{background:var(--cy);color:#02101a}.note{font-size:14px;margin:8px 0 0}
 #prof{position:fixed;inset:0;z-index:8;background:rgba(0,0,0,.74);display:none;overflow:auto;padding:56px 14px 24px}#prof.on{display:block}#prof .card{max-width:520px;margin:0 auto}
+#boot{position:fixed;inset:0;z-index:9;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:20px;background:radial-gradient(ellipse 80% 45% at 50% 50%,rgba(0,0,0,.94) 0,rgba(0,0,0,.92) 55%,rgba(0,0,0,.5) 100%);text-align:center;transition:opacity .8s}#boot.out{opacity:0;pointer-events:none}
+.bt{font:700 30px "Cinzel",serif;letter-spacing:.3em;margin-right:-.3em;color:var(--cy);text-shadow:0 0 22px rgba(240,180,90,.65)}.bs{font:11px "IBM Plex Mono",monospace;letter-spacing:.3em;color:var(--mu)}
+.bm{font:12px "IBM Plex Mono",monospace;letter-spacing:.12em;color:var(--mu);min-height:64px;line-height:1.9;margin-top:10px}
+#bgo{opacity:0;transition:opacity .6s;padding:15px 34px;border:1px solid var(--cy);background:rgba(240,180,90,.08);color:var(--cy);font:700 14px "Cinzel",serif;letter-spacing:.35em;text-indent:.35em;border-radius:0;animation:bp 2s ease-in-out infinite}#bgo.on{opacity:1}@keyframes bp{50%{box-shadow:0 0 22px rgba(240,180,90,.45)}}
+.bn{font:10px "IBM Plex Mono",monospace;letter-spacing:.2em;color:var(--mu);opacity:.7}
 .stats{display:flex;gap:8px}.stats div{flex:1;text-align:center;background:var(--card);border:1px solid var(--line);border-radius:2px;padding:8px 4px;font-size:10px;color:var(--mu)}.stats b{display:block;font-size:20px;color:var(--cy)}
 #caption{position:fixed;left:0;right:0;bottom:calc(8% + env(safe-area-inset-bottom,0px));text-align:center;z-index:2;font-family:"Cinzel",sans-serif;text-transform:uppercase;font-size:13px;letter-spacing:.2em;color:var(--cy);text-shadow:0 0 14px var(--cy);opacity:0;transition:opacity .3s;padding:0 16px}
 #caption.on{opacity:1}
@@ -67,8 +72,9 @@ textarea{min-height:240px;font-size:13px;font-family:ui-monospace,Menlo,monospac
 <body>
 <canvas id="net"></canvas>
 <div id="hud"><span id="hl">PROYECTO X · LOCAL</span><span id="clk">--:--:--</span><span id="cnt">NODOS 0</span></div><div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>
-<div id="leg"><span>○ ESPERA</span> · <span style="color:#f0b45a">◯ VA</span> · <span style="color:#7ff0e0">✓ AQUÍ</span> · <span style="color:#ff5d73">✕ NO VA</span></div><button id="snd">♪ ON</button>
+<div id="leg"><span>○ ESPERA</span> · <span style="color:#f0b45a">◯ VA</span> · <span style="color:#7ff0e0">✓ AQUÍ</span> · <span style="color:#ff5d73">✕ NO VA</span></div><button id="snd">♪ ACTIVAR</button>
 <div id="ui"></div>
+<div id="boot"><div class="bt">PROYECTO X</div><div class="bs">RED DE INVITADOS · 28 NOV</div><div class="bm" id="bl"></div><button id="bgo">INICIAR</button><div class="bn">con sonido</div></div>
 <div id="caption"></div>
 <div id="cam">
   <video id="vid" autoplay playsinline muted></video>
@@ -323,13 +329,22 @@ function updateCD(){const el=document.getElementById('cd');if(!el)return;const m
   if(ms<=0){el.innerHTML=Date.now()<EVENT.getTime()+864e5?'<div class="cdmsg">HOY ES EL DÍA · PROYECTO X EN CURSO</div>':'<div class="cdmsg">MISIÓN CUMPLIDA</div>';return}
   const t=Math.floor(ms/1000),q=n=>String(n).padStart(2,'0'),u=[[Math.floor(t/86400),'DÍAS'],[Math.floor(t%86400/3600),'HRS'],[Math.floor(t%3600/60),'MIN'],[t%60,'SEG']];
   el.innerHTML=u.map(x=>`<div><b>${q(x[0])}</b><small>${x[1]}</small></div>`).join('<i>:</i>')}
-const AU={x:new Audio('musica/track.mp3')},VOL={x:.8};
-Object.values(AU).forEach(a=>{a.loop=true;a.volume=0;a.preload='auto';a.onerror=()=>{}});
-let want='x',muted=false,started=false;
-function music(k){want=k}
-addEventListener('pointerdown',()=>{started=true;for(const k in AU){AU[k].play().then(()=>{if(k!==want)AU[k].pause()}).catch(()=>{})}},{once:true});
-document.getElementById('snd').onclick=e=>{muted=!muted;e.target.textContent=muted?'♪ OFF':'♪ ON'};
-setInterval(()=>{for(const k in AU){const a=AU[k],tgt=(!started||muted||k!==want)?0:VOL[k];if(tgt>0&&a.paused)a.play().catch(()=>{});const v=a.volume,nv=v<tgt?Math.min(tgt,v+.02):Math.max(tgt,v-.02);if(nv!==v)a.volume=nv;if(nv===0&&!a.paused&&(muted||k!==want))a.pause()}},60);
+const A=new Audio('musica/track.mp3'),VOLX=.8;
+A.loop=true;A.volume=0;A.preload='auto';
+let muted=false,playing=false,failed=false;const snd=document.getElementById('snd');
+function sndLabel(){snd.textContent=failed?'♪ SIN ARCHIVO':muted?'♪ OFF':playing?'♪ ON':'♪ ACTIVAR'}
+A.addEventListener('playing',()=>{playing=true;sndLabel()});A.addEventListener('pause',()=>{playing=false;sndLabel()});A.addEventListener('error',()=>{failed=true;sndLabel()});
+function tryPlay(){if(muted||failed||!A.paused)return;const pr=A.play();if(pr&&pr.catch)pr.catch(()=>{})}
+['pointerup','click','touchend','keydown'].forEach(ev=>addEventListener(ev,tryPlay,{passive:true}));
+snd.onclick=()=>{if(failed){failed=false;A.load();tryPlay();sndLabel();return}if(!playing&&!muted){tryPlay();return}muted=!muted;if(muted)setTimeout(()=>{if(muted)A.pause()},1300);else tryPlay();sndLabel()};
+function music(k){}
+// ---------- pantalla de inicio: el toque inicial arranca la música
+const boot=document.getElementById('boot'),bgo=document.getElementById('bgo'),bootLines=['> Estableciendo enlace…','> Sincronizando nodos…','> Red lista.'];
+bootLines.forEach((t,i)=>setTimeout(()=>{document.getElementById('bl').innerHTML+=t+'<br>'},350+i*450));
+setTimeout(()=>bgo.classList.add('on'),350+bootLines.length*450);
+boot.onclick=()=>{tryPlay();boot.classList.add('out')};
+try{const pr=A.play();if(pr&&pr.then)pr.then(()=>boot.classList.add('out')).catch(()=>{})}catch(e){}
+setInterval(()=>{if(A.paused)return;const tgt=muted?0:VOLX,v=A.volume,nv=v<tgt?Math.min(tgt,v+.02):Math.max(tgt,v-.02);if(nv!==v)A.volume=nv},60);
 // ---------- nube (Firebase): las confirmaciones se guardan y se ven en todos los dispositivos
 const FB={apiKey:"AIzaSyBZPh0vWGi5wd85xC3eOLXykHBtQQDec7Q",authDomain:"xproject-61af2.firebaseapp.com",projectId:"xproject-61af2",storageBucket:"xproject-61af2.firebasestorage.app",messagingSenderId:"230354675245",appId:"1:230354675245:web:61dd4de7416dc093187aa4"};
 function syncOut(){if(!cloud)return;for(const id in S.reg){const j=JSON.stringify(S.reg[id]);if(lastSent[id]===j)continue;lastSent[id]=j;cloud.doc(id).set(JSON.parse(j),{merge:true}).catch(()=>{delete lastSent[id]})}}
