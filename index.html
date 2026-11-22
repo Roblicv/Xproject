@@ -90,26 +90,43 @@ textarea{min-height:240px;font-size:13px;font-family:ui-monospace,Menlo,monospac
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script>
 // ---------- almacenamiento (con respaldo en memoria) ----------
-const KEY='cumple-red-v4';
-let cloud=null,lastSent={},deferRebuild=false;
+const KEY='cumple-red-v5';
+let cloud=null,lastSent={},deferRebuild=false,memMe=null;
 let mem=null;
 function load(){try{const r=localStorage.getItem(KEY);if(r)return JSON.parse(r);}catch(e){}return mem}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}mem=S;syncOut()}
 const SEED=`Juan Sebastián Morales
 Santiago Heredia Jiménez
-Tomás
 Sergio Serrano
 Sergio Martínez
-Katalina
+Tomás
+Daniel Urrea
+Mateo
+Katalina Muñoz
+Angie
+Santiago Moreno Rozo
+Juan David Martínez
+Daniel Moreno Bonilla
 Karen Ortiz Trigos
-Daniel
-Julián Cristancho`;
+Cindy
+Valentina`;
 let S=load()||{list:SEED,reg:{}};
 const PROFILES=[
 {k:'sergio serrano',aliases:['Serranovsky','El Hippie'],sa:['Serranovsky','Hippie'],origen:'Bogotano',rel:'Compañero de yagé del cumpleañero',fact:'Se aplicó veneno de rana para "fortalecer su sistema inmune". Sigue entre nosotros; la ciencia lo investiga.',dlabel:'Nivel de peligro',danger:null,quote:'Nadie sabe qué circula por ese torrente sanguíneo.',chismes:['Su aura es oficialmente la más agradable del grupo. Certificada por él mismo.','Debilidad confirmada: las góticas. Sin excepciones.','Se hizo amigo del cumpleañero tomando yagé. Pregúntale cómo fue… si te atreves.']},
 {k:'santiago heredia',aliases:['Kakaioh','KKs','Santo','Herencio'],sa:['Kakaioh','KKs','Santo','Herencio'],origen:'Bogotano',rel:'Amigo de la universidad · 14 años de historia',fact:'Socio de la era youtuber: películas mentales huyendo de cámaras de seguridad.',dlabel:'Competitivo por naturaleza',danger:90,quote:'Perder no está en su vocabulario. Ni en su sistema digestivo.',chismes:['Creativo innato. Peligroso cuando se aburre.','Su momento más sólido como dúo: la era youtuber.','Tres jirafas y buenos amigos: ahí nacen las leyendas.']},
 {k:'juan sebastian',aliases:['Morrales'],sa:['Morrales'],origen:'Bogotano',rel:'Sobrino del cumpleañero',fact:'DJ y "accionista minoritario" de Theatron. Casi tiene silla propia.',dlabel:'Días sin bañarse',danger:50,quote:'A mitad de escala: el sillón de al lado aún es seguro.',chismes:['En Theatron lo saludan por el nombre. Y por el saldo.','Es DJ: si hoy algo suena mal, ya hay un sospechoso.','Aprendió casi todo de su tío. Se nota. Para bien y para mal.']},
-{k:'karen ortiz',aliases:['Mi amor','Preciosa'],sa:[],origen:'Cúcuta · N. de Santander',rel:'Novia del cumpleañero. Se conocieron el 18 de octubre.',fact:'Geóloga y científica de nacimiento. Inspiración de "La teoría de los dos cuerpos".',dlabel:'Pasos prohibidos',danger:100,quote:'Cuando ella baila, el reglamento deja de aplicar.',chismes:['Supremamente amorosa. Esa es la parte más peligrosa.','Estudia rocas y lleva semanas estudiando al cumpleañero. Resultados: prometedores.','Desde el 18 de octubre, geóloga oficial de este proyecto.']}];
+{k:'karen ortiz',aliases:['Mi amor','Preciosa'],sa:[],origen:'Cúcuta · N. de Santander',rel:'Novia del cumpleañero. Se conocieron el 18 de octubre.',fact:'Geóloga y científica de nacimiento. Inspiración de "La teoría de los dos cuerpos".',dlabel:'Pasos prohibidos',danger:100,quote:'Cuando ella baila, el reglamento deja de aplicar.',chismes:['Supremamente amorosa. Esa es la parte más peligrosa.','Estudia rocas y lleva semanas estudiando al cumpleañero. Resultados: prometedores.','Desde el 18 de octubre, geóloga oficial de este proyecto.']},
+{k:'sergio martinez',aliases:['Raptor'],sa:['Raptor']},
+{k:'tomas',aliases:['IamPortal'],sa:['IamPortal','Tomi']},
+{k:'katalina munoz',aliases:['Kabra'],sa:['Kabra','Cata','Catalina']},
+{k:'daniel urrea',aliases:[],sa:[]},
+{k:'mateo',aliases:[],sa:['Matheo','Mate']},
+{k:'angie',aliases:[],sa:['Angy','Angi']},
+{k:'santiago moreno',aliases:[],sa:[]},
+{k:'juan david',aliases:[],sa:['Juanda','Juan Da']},
+{k:'daniel moreno',aliases:[],sa:[]},
+{k:'cindy',aliases:[],sa:['Cindi','Sindy','Sindi']},
+{k:'valentina',aliases:[],sa:['Valen','Vale']}];
 function profileFor(name){const n=norm(name).split(' ');return PROFILES.find(p=>p.k.split(' ').every(t=>n.includes(t)))||{}}
 function parseList(txt){return parseList0(txt).map(g=>Object.assign(g,{danger:null,fact:'Expediente en construcción',dlabel:'Nivel de peligro',chismes:[],origen:'',quote:''},profileFor(g.name)))}
 function parseList0(txt){return txt.split('\n').map(l=>l.trim()).filter(Boolean).map((l,i)=>{const p=l.split('|').map(x=>x.trim());return{id:'g'+i+'_'+norm(p[0]).replace(/ /g,''),name:p[0],aliases:(p[1]||'').split(',').map(x=>x.trim()).filter(Boolean),rel:p[2]||'Invitado especial',fact:p[3]||'Información clasificada',danger:Math.max(0,Math.min(100,parseInt(p[4])||50)),photos:(p[5]||'').split(',').map(x=>x.trim()).filter(Boolean)}})}
@@ -119,14 +136,29 @@ const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'
 // ---------- coincidencia aproximada de nombres ----------
 function norm(s){return String(s).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim()}
 const KB=(()=>{const rows=['qwertyuiop','asdfghjkl','zxcvbnm'],off=[0,.25,.75],m={};rows.forEach((r,y)=>[...r].forEach((c,x)=>m[c]=[x+off[y],y]));return m})();
-function kcost(x,y){if(x===y)return 0;const p=KB[x],q=KB[y];return p&&q&&Math.hypot(p[0]-q[0],p[1]-q[1])<=1.3?.4:1}
-function lev(a,b){const m=a.length,n=b.length,d=Array.from({length:m+1},(_,i)=>{const r=new Array(n+1).fill(0);r[0]=i;return r});for(let j=0;j<=n;j++)d[0][j]=j;
-  for(let i=1;i<=m;i++)for(let j=1;j<=n;j++){let v=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+kcost(a[i-1],b[j-1]));if(i>1&&j>1&&a[i-1]===b[j-2]&&a[i-2]===b[j-1])v=Math.min(v,d[i-2][j-2]+.5);d[i][j]=v}return d[m][n]}
+const VOW='aeiou';
+function kcost(x,y){if(x===y)return 0;if(VOW.includes(x)&&VOW.includes(y))return .6;const p=KB[x],q=KB[y];return p&&q&&Math.hypot(p[0]-q[0],p[1]-q[1])<=1.3?.4:1}
+const adj=(x,y)=>!!(x&&y&&x!==y&&KB[x]&&KB[y]&&Math.hypot(KB[x][0]-KB[y][0],KB[x][1]-KB[y][1])<=1.3);
+function lev(a,b){const m=a.length,n=b.length,d=Array.from({length:m+1},()=>new Array(n+1).fill(0));
+  for(let i=1;i<=m;i++)d[i][0]=d[i-1][0]+1;for(let j=1;j<=n;j++)d[0][j]=d[0][j-1]+1;
+  for(let i=1;i<=m;i++)for(let j=1;j<=n;j++){
+    const dl=(i>1&&a[i-1]===a[i-2])?.5:((adj(a[i-1],a[i-2])||adj(a[i-1],a[i]))?.6:1),is=(j>1&&b[j-1]===b[j-2])?.5:1;
+    let v=Math.min(d[i-1][j]+dl,d[i][j-1]+is,d[i-1][j-1]+kcost(a[i-1],b[j-1]));
+    if(i>1&&j>1&&a[i-1]===b[j-2]&&a[i-2]===b[j-1])v=Math.min(v,d[i-2][j-2]+.5);
+    d[i][j]=v}
+  return d[m][n]}
 function phon(t){return t.replace(/ph/g,'f').replace(/qu/g,'k').replace(/c(?=[ei])/g,'s').replace(/c/g,'k').replace(/z/g,'s').replace(/v/g,'b').replace(/ll/g,'y').replace(/h/g,'').replace(/w/g,'u').replace(/g(?=[ei])/g,'j').replace(/(.)\1+/g,'$1')}
 function tokSim(a,b){return Math.max(tokSim0(a,b),tokSim0(phon(a),phon(b)))}
-function tokSim0(a,b){if(a===b)return 1;if(b.startsWith(a)&&a.length>=3)return .9;return 1-lev(a,b)/Math.max(a.length,b.length)}
-function score(input,cand){const it=norm(input).split(' ').filter(Boolean),ct=norm(cand).split(' ').filter(Boolean);if(!it.length||!ct.length)return 0;const pr=[];it.forEach((t,i)=>ct.forEach((c,j)=>pr.push([tokSim(t,c),i,j])));pr.sort((x,y)=>y[0]-x[0]);const ui_=new Set(),uj=new Set();let sum=0;for(const [v,i,j] of pr){if(v<.6||ui_.has(i)||uj.has(j))continue;ui_.add(i);uj.add(j);sum+=v}const avg=sum/it.length;const cover=Math.min(1,it.length/Math.min(ct.length,2));return avg*(.72+.28*cover)}
-function findGuests(input){return guests.map(g=>({g,s:Math.max(score(input,g.name),...(g.sa||g.aliases).map(a=>score(input,a)))})).filter(x=>x.s>=.5).sort((a,b)=>b.s-a.s)}
+function tokSim0(a,b){if(a===b)return 1;const m=a.length;let best=1-lev(a,b)/Math.max(m,b.length);
+  if(m>=3&&b.length>m){for(const L of [m-1,m,m+1]){if(L<2||L>b.length)continue;best=Math.max(best,.92*(1-lev(a,b.slice(0,L))/Math.max(m,L)))}}
+  return best}
+function score(input,cand){const it=norm(input).split(' ').filter(Boolean),ct=norm(cand).split(' ').filter(Boolean);if(!it.length||!ct.length)return 0;
+  const pr=[];it.forEach((t,i)=>ct.forEach((c,j)=>pr.push([tokSim(t,c),i,j])));pr.sort((x,y)=>y[0]-x[0]);
+  const ui_=new Set(),uj=new Set();let sum=0;for(const [v,i,j] of pr){if(v<.65||ui_.has(i)||uj.has(j))continue;ui_.add(i);uj.add(j);sum+=v}
+  const avg=sum/it.length,cover=Math.min(1,it.length/Math.min(ct.length,2));let sc=avg*(.72+.28*cover);
+  const ji=it.join(''),cj=ct.join('');if(ji.length>=8)sc=Math.max(sc,.98*tokSim(ji,cj));   // escrito sin espacios
+  return sc}
+function findGuests(input){return guests.map(g=>({g,s:Math.max(score(input,g.name),...(g.sa||g.aliases).map(a=>score(input,a)))})).filter(x=>x.s>=.7).sort((a,b)=>b.s-a.s)}
 function resolve(input){const r=findGuests(input);if(!r.length)return{type:'none'};if(r[0].s>=.85&&(!r[1]||r[0].s-r[1].s>=.12))return{type:'one',g:r[0].g,s:r[0].s};return{type:'pick',opts:r.slice(0,3).filter(x=>x.s>=r[0].s-.15).map(x=>x.g)}}
 
 // ---------- red neuronal (canvas) ----------
@@ -252,7 +284,7 @@ function drawTraveler(t){
 }
 function flyToNetwork(g,selfie,cb){
   pendingId=g.id;
-  S.reg[g.id]=Object.assign(S.reg[g.id]||{},{selfie,confirmedAt:Date.now(),declinedAt:null});save();
+  S.reg[g.id]=Object.assign(S.reg[g.id]||{},{selfie,confirmedAt:Date.now(),declinedAt:null});save();if(!ADMIN)setMe(g.id);
   rebuild();const target=nodes.find(n=>n.id===g.id);target.lit=0;
   const caps=['Leyendo señal facial…','Comprimiendo identidad en un punto…','Trazando ruta hacia la red…','Accediendo al archivo central…'];
   let last=-1;const cap=document.getElementById('caption');cap.classList.add('on');
@@ -285,7 +317,7 @@ function render(){
   document.body.classList.toggle('tablet',mode==='arrive');
   if(mode==='list')return renderList();
   const arrive=mode==='arrive';
-  if(step.n==='name'){renderPick(arrive);return}
+  if(step.n==='name'){if(!ADMIN&&lockedUI())return;renderPick(arrive);return}
   if(step.n==='name'){shell(`<div class="card"><h1>${arrive?'Registro de llegada':'Confirma tu asistencia'}</h1><p>${arrive?'Escribe tu nombre para entrar a la red.':'Escribe tu nombre (con apodo o apellido basta) y tómate una selfie.'}</p><input type="text" id="nm" placeholder="Tu nombre" autocomplete="off" autocapitalize="words"><button class="btn" id="go">Continuar</button><div id="msg"></div></div>`);
     const go=()=>{const v=document.getElementById('nm').value;if(!norm(v))return;const r=resolve(v);
       if(r.type==='one')chosen(r.g);
@@ -303,12 +335,22 @@ function render(){
   else if(step.n==='done'){const g=step.g;shell(`<div class="card" style="text-align:center"><h1>¡Confirmado, ${esc(g.name.split(' ')[0])}!</h1><p>Tu punto ya vive en la red. Nos vemos en la fiesta.</p><button class="btn" id="again">Nuevo registro</button></div>`);document.getElementById('again').onclick=()=>{step={n:'name'};render()}}
   else if(step.n==='ficha')renderFicha()}
 function loseSignal(g,cb){
-  const rg=S.reg[g.id]=S.reg[g.id]||{};rg.declinedAt=Date.now();rg.confirmedAt=null;rg.selfie=null;save();rebuild();
+  const rg=S.reg[g.id]=S.reg[g.id]||{};rg.declinedAt=Date.now();rg.confirmedAt=null;rg.selfie=null;save();if(!ADMIN)setMe(g.id);rebuild();
   const nd=nodes.find(n=>n.id===g.id);if(nd)nd.flick=T+2600;
   const cap=document.getElementById('caption'),ui=document.getElementById('ui');ui.classList.add('hide');cap.classList.add('on');cap.textContent='Perdiendo señal…';
   setTimeout(()=>{cap.textContent='Nodo desconectado'},1400);
   setTimeout(()=>{cap.classList.remove('on');ui.classList.remove('hide');cb()},2800)}
 function chosen(g){step={n:'selfie',g};render()}
+function myId(){try{return localStorage.getItem('cumple-red-me')}catch(e){return memMe}}
+function setMe(id){memMe=id;try{localStorage.setItem('cumple-red-me',id)}catch(e){}}
+function clearMe(){memMe=null;try{localStorage.removeItem('cumple-red-me')}catch(e){}}
+const isReg=g=>{const r=S.reg[g.id];return !!(r&&(r.confirmedAt||r.declinedAt))};
+function lockedUI(){const me=myId();if(!me)return false;const g=guests.find(x=>x.id===me);if(!g||!isReg(g)){clearMe();return false}
+  const r=S.reg[g.id];
+  shell(`<div class="card" style="text-align:center"><h1>Ya estás en la red, ${esc(g.name.split(' ')[0])}</h1><p>${r.declinedAt?'Quedó registrado que no podrás asistir.':'Tu asistencia ya quedó confirmada.'} Cada persona se registra una sola vez desde su celular.</p>${r.confirmedAt&&r.selfie?'<button class="btn" id="mp">Ver mi perfil</button>':''}<button class="btn ghost" id="mc">Cambiar mi respuesta</button></div>`);
+  const mp=document.getElementById('mp');if(mp)mp.onclick=()=>openProfile(g.id);
+  document.getElementById('mc').onclick=()=>chosen(g);return true}
+function release(id){S.reg[id]={confirmedAt:null,declinedAt:null,arrivedAt:null,selfie:null,arrivalSelfie:null,plus:null};save();rebuild();render()}
 function renderPick(arrive){
   shell(`<div class="card"><h1>${arrive?'Registro de llegada':'Confirma tu asistencia'}</h1><p>Escribe tu nombre para encontrarte en la red.</p><input type="text" id="q" placeholder="Tu nombre y apellido" autocomplete="off" autocapitalize="words"><div id="lst"></div></div>`);
   const draw=()=>{const raw=document.getElementById('q').value,v=norm(raw),box=document.getElementById('lst');
@@ -317,6 +359,8 @@ function renderPick(arrive){
     if(r.type==='one')arr=[r.g];
     else if(r.type==='pick'){if(v.split(' ').length===1&&r.opts.length>1)msg='Hay más de una persona con ese nombre. Agrega tu apellido.';else arr=r.opts}
     else msg='No te encuentro. Revisa cómo escribiste tu nombre.';
+    const busy=g=>arrive?!!(S.reg[g.id]&&S.reg[g.id].arrivedAt):isReg(g);
+    if(arr.length){const free=arr.filter(g=>!busy(g));if(!free.length)msg=arrive?'Esa persona ya hizo su llegada.':'Esa persona ya se registró. Si eres tú y fue un error, avísale a Julián.';arr=free}
     box.innerHTML=arr.map(g=>`<button class="opt" data-id="${esc(g.id)}">${esc(g.name)}</button>`).join('')+(msg?`<p style="margin-top:12px">${msg}</p>`:'');
     box.querySelectorAll('.opt').forEach(b=>b.onclick=()=>chosen(guests.find(g=>g.id===b.dataset.id)))};
   document.getElementById('q').oninput=draw;draw()}
@@ -352,9 +396,9 @@ function openProfile(id){const g=guests.find(x=>x.id===id),rg=S.reg[id];if(!g||!
   m.innerHTML='<div class="card ficha" id="pcard"></div>';m.classList.add('on');
   mountFicha(document.getElementById('pcard'),g,rg.selfie,{extra:'<button class="btn ghost" id="pcl">Cerrar</button>'});
   document.getElementById('pcl').onclick=()=>m.classList.remove('on');m.onclick=e=>{if(e.target===m)m.classList.remove('on')}}
-function statusCard(){const L=f=>guests.filter(g=>f(S.reg[g.id]||{})).map(g=>esc(g.name)).join(', ')||'—';return `<div class="card"><h2>Estado</h2><div class="row2"><small>Confirmados</small><span>${L(r=>r.confirmedAt)}</span></div><div class="row2"><small>No asisten</small><span>${L(r=>r.declinedAt)}</span></div><div class="row2"><small>Acompañantes</small><span>${guests.filter(g=>(S.reg[g.id]||{}).plus>0).map(g=>esc(g.name.split(' ')[0])+' +'+S.reg[g.id].plus).join(', ')||'—'}</span></div><div class="row2"><small>Sin respuesta</small><span>${L(r=>!r.confirmedAt&&!r.declinedAt)}</span></div></div>`}
+function statusCard(){const L=f=>guests.filter(g=>f(S.reg[g.id]||{})).map(g=>esc(g.name)).join(', ')||'—';return `<div class="card"><h2>Estado</h2><div class="row2"><small>Confirmados</small><span>${L(r=>r.confirmedAt)}</span></div><div class="row2"><small>No asisten</small><span>${L(r=>r.declinedAt)}</span></div><div class="row2"><small>Acompañantes</small><span>${guests.filter(g=>(S.reg[g.id]||{}).plus>0).map(g=>esc(g.name.split(' ')[0])+' +'+S.reg[g.id].plus).join(', ')||'—'}</span></div><div class="row2"><small>Liberar un registro (error o broma)</small>${guests.filter(g=>{const r=S.reg[g.id]||{};return r.confirmedAt||r.declinedAt||r.arrivedAt}).map(g=>`<button class="opt rel" data-id="${esc(g.id)}">${esc(g.name)} · liberar</button>`).join('')||'<span>—</span>'}</div><div class="row2"><small>Sin respuesta</small><span>${L(r=>!r.confirmedAt&&!r.declinedAt)}</span></div></div>`}
 function renderList(){shell(`<div class="card"><h2>Lista de invitados</h2><p>Una línea por persona:<br><b>Nombre completo | apodos, separados, por coma | parentesco | dato curioso | peligro 0-100 | fotos (rutas, separadas por coma)</b></p><textarea id="ta">${esc(S.list)}</textarea><button class="btn" id="sv">Guardar lista</button><button class="btn ghost" id="rs">Borrar registros de prueba</button><div id="msg"></div></div>${statusCard()}`);
-  document.getElementById('sv').onclick=()=>{S.list=document.getElementById('ta').value;guests=parseList(S.list);save();rebuild();document.getElementById('msg').innerHTML='<p style="margin-top:12px">Lista guardada: '+guests.length+' invitados.</p>'};
+  document.querySelectorAll('.rel').forEach(b=>b.onclick=()=>release(b.dataset.id));document.getElementById('sv').onclick=()=>{S.list=document.getElementById('ta').value;guests=parseList(S.list);save();rebuild();document.getElementById('msg').innerHTML='<p style="margin-top:12px">Lista guardada: '+guests.length+' invitados.</p>'};
   document.getElementById('rs').onclick=()=>{if(cloud){document.getElementById('msg').innerHTML='<p style="margin-top:12px">Los registros viven en Firebase. Para borrarlos: consola de Firebase → Firestore → colección reg.</p>';return}S.reg={};save();rebuild();render()}}
 
 const EVENT=new Date(2026,10,28,0,0,0);
