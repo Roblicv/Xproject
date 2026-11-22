@@ -329,14 +329,14 @@ function updateCD(){const el=document.getElementById('cd');if(!el)return;const m
   if(ms<=0){el.innerHTML=Date.now()<EVENT.getTime()+864e5?'<div class="cdmsg">HOY ES EL DÍA · PROYECTO X EN CURSO</div>':'<div class="cdmsg">MISIÓN CUMPLIDA</div>';return}
   const t=Math.floor(ms/1000),q=n=>String(n).padStart(2,'0'),u=[[Math.floor(t/86400),'DÍAS'],[Math.floor(t%86400/3600),'HRS'],[Math.floor(t%3600/60),'MIN'],[t%60,'SEG']];
   el.innerHTML=u.map(x=>`<div><b>${q(x[0])}</b><small>${x[1]}</small></div>`).join('<i>:</i>')}
-const A=new Audio('musica/track.mp3'),VOLX=.8;
+const SRC=['musica/track.mp3','track.mp3','musica/Track.mp3','Track.mp3'];let si=0;const A=new Audio(SRC[0]),VOLX=.8;
 A.loop=true;A.volume=0;A.preload='auto';
 let muted=false,playing=false,failed=false;const snd=document.getElementById('snd');
 function sndLabel(){snd.textContent=failed?'♪ SIN ARCHIVO':muted?'♪ OFF':playing?'♪ ON':'♪ ACTIVAR'}
-A.addEventListener('playing',()=>{playing=true;sndLabel()});A.addEventListener('pause',()=>{playing=false;sndLabel()});A.addEventListener('error',()=>{failed=true;sndLabel()});
+A.addEventListener('playing',()=>{playing=true;sndLabel()});A.addEventListener('pause',()=>{playing=false;sndLabel()});A.addEventListener('error',()=>{if(si<SRC.length-1){si++;A.src=SRC[si];A.load();return}failed=true;sndLabel()});
 function tryPlay(){if(muted||failed||!A.paused)return;const pr=A.play();if(pr&&pr.catch)pr.catch(()=>{})}
 ['pointerup','click','touchend','keydown'].forEach(ev=>addEventListener(ev,tryPlay,{passive:true}));
-snd.onclick=()=>{if(failed){failed=false;A.load();tryPlay();sndLabel();return}if(!playing&&!muted){tryPlay();return}muted=!muted;if(muted)setTimeout(()=>{if(muted)A.pause()},1300);else tryPlay();sndLabel()};
+snd.onclick=()=>{if(failed){failed=false;si=0;A.src=SRC[0];A.load();tryPlay();sndLabel();return}if(!playing&&!muted){tryPlay();return}muted=!muted;if(muted)setTimeout(()=>{if(muted)A.pause()},1300);else tryPlay();sndLabel()};
 function music(k){}
 // ---------- pantalla de inicio: el toque inicial arranca la música
 const boot=document.getElementById('boot'),bgo=document.getElementById('bgo'),bootLines=['> Estableciendo enlace…','> Sincronizando nodos…','> Red lista.'];
