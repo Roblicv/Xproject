@@ -112,8 +112,8 @@ textarea{min-height:240px;font-size:13px;font-family:ui-monospace,Menlo,monospac
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script>
 // ---------- almacenamiento (con respaldo en memoria) ----------
-const KEY='cumple-red-v5';
-let SAL=[],cloudSal=null,cloud=null,cloudMsgs=null,lastSent={},deferRebuild=false,memMe=null,memUndo=false;
+const KEY='cumple-red-v7';
+let SAL=[],cloudSal=null,cloudReady=false,cloud=null,cloudMsgs=null,lastSent={},deferRebuild=false,memMe=null,memUndo=false;
 let mem=null;
 function load(){try{const r=localStorage.getItem(KEY);if(r)return JSON.parse(r);}catch(e){}return mem}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}mem=S;syncOut()}
@@ -486,7 +486,7 @@ try{const pr=A.play();if(pr&&pr.then)pr.then(()=>boot.classList.add('out')).catc
 setInterval(()=>{if(A.paused)return;const tgt=muted?0:VOLX,v=A.volume,nv=v<tgt?Math.min(tgt,v+.02):Math.max(tgt,v-.02);if(nv!==v)A.volume=nv},60);
 // ---------- nube (Firebase): las confirmaciones se guardan y se ven en todos los dispositivos
 const FB={apiKey:"AIzaSyBZPh0vWGi5wd85xC3eOLXykHBtQQDec7Q",authDomain:"xproject-61af2.firebaseapp.com",projectId:"xproject-61af2",storageBucket:"xproject-61af2.firebasestorage.app",messagingSenderId:"230354675245",appId:"1:230354675245:web:61dd4de7416dc093187aa4"};
-function syncOut(){if(!cloud)return;for(const id in S.reg){const j=JSON.stringify(S.reg[id]);if(lastSent[id]===j)continue;lastSent[id]=j;cloud.doc(id).set(JSON.parse(j),{merge:true}).catch(()=>{delete lastSent[id]})}}
+function syncOut(){if(!cloud||!cloudReady)return;for(const id in S.reg){const j=JSON.stringify(S.reg[id]);if(lastSent[id]===j)continue;lastSent[id]=j;cloud.doc(id).set(JSON.parse(j),{merge:true}).catch(()=>{delete lastSent[id]})}}
 function refreshStats(){const el=document.querySelector('.stats');if(el){const t=document.createElement('div');t.innerHTML=stats();el.replaceWith(t.firstElementChild)}}
 // ---------- mensajes: uno por persona, como burbuja sobre su foto en la red
 function sortMsgs(){S.msgs.sort((a,b)=>a.ts-b.ts||(a.id<b.id?-1:1))}
@@ -506,8 +506,8 @@ function sendMsg(g){if(!g||!eligible(g)||msgOf(g.id))return;const inp=document.g
   else{S.msgs.push({id:g.id+'_'+epochOf(g.id),by:g.id,name:g.name,text,ts:Date.now()});sortMsgs();save();openMsg(g)}}
 document.getElementById('wx').onclick=()=>{stopRecStream();document.getElementById('wl').classList.remove('on')};
 document.getElementById('wl').onclick=e=>{if(e.target.id==='wl'){stopRecStream();e.currentTarget.classList.remove('on')}};
-function subMsgs(fsd){const col=fsd.collection('msgs');cloudMsgs=col;
-  col.onSnapshot(snap=>{snap.docChanges().forEach(ch=>{const d=ch.doc.data({serverTimestamps:'estimate'}),m={id:ch.doc.id,by:d.by,name:d.name,text:d.text,ts:d.ts&&d.ts.toMillis?d.ts.toMillis():Date.now()},i=S.msgs.findIndex(x=>x.id===m.id);
+function subMsgs(fsd){const col=fsd.collection('msgs');cloudMsgs=col;let first=true;
+  col.onSnapshot(snap=>{if(first){first=false;S.msgs=[]}snap.docChanges().forEach(ch=>{const d=ch.doc.data({serverTimestamps:'estimate'}),m={id:ch.doc.id,by:d.by,name:d.name,text:d.text,ts:d.ts&&d.ts.toMillis?d.ts.toMillis():Date.now()},i=S.msgs.findIndex(x=>x.id===m.id);
     if(ch.type==='removed'){if(i>=0)S.msgs.splice(i,1)}else if(i>=0)S.msgs[i]=m;else S.msgs.push(m)});
     sortMsgs();try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}},()=>{cloudMsgs=null})}
 // burbujas sobre las fotos: una a la vez, de vez en cuando
@@ -581,7 +581,13 @@ function openSalView(id){const g=guests.find(x=>x.id===id),sg=salOf(id);if(!g||!
 function startCloud(){if(typeof firebase==='undefined')return;
   try{firebase.initializeApp(FB);
     firebase.auth().signInAnonymously().then(()=>{const fsd=firebase.firestore(),col=fsd.collection('reg');
-      col.onSnapshot(snap=>{snap.docChanges().forEach(ch=>{const id=ch.doc.id;if(ch.type==='removed'){delete S.reg[id];delete lastSent[id]}else{S.reg[id]=ch.doc.data();lastSent[id]=JSON.stringify(S.reg[id])}});
+      const bootReg={};for(const k in S.reg)bootReg[k]=JSON.stringify(S.reg[k]);let first=true;
+      col.onSnapshot(snap=>{const chs=snap.docChanges();
+        if(first){first=false;const seen=new Set();   // primera lectura: la nube manda; la caché vieja del navegador no resucita registros liberados
+          chs.forEach(c=>{const id=c.doc.id,d=c.doc.data();seen.add(id);if(!(id in bootReg)||JSON.stringify(S.reg[id])===bootReg[id])S.reg[id]=d;lastSent[id]=JSON.stringify(d)});
+          for(const id of Object.keys(bootReg))if(!seen.has(id)&&JSON.stringify(S.reg[id])===bootReg[id])delete S.reg[id];
+          cloudReady=true;syncOut()}
+        else chs.forEach(c=>{const id=c.doc.id;if(c.type==='removed'){delete S.reg[id];delete lastSent[id]}else{S.reg[id]=c.doc.data();lastSent[id]=JSON.stringify(S.reg[id])}});
         try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}
         if(traveler)deferRebuild=true;else rebuild();refreshStats()},()=>{cloud=null});
       cloud=col;syncOut();subMsgs(fsd);subSal(fsd)}).catch(()=>{cloud=null})}catch(e){cloud=null}}
