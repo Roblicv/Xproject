@@ -198,14 +198,17 @@ let pendingId=null,W=0,H=0,nodes=[],edges=[],pulses=[],traveler=null,imgs={},T=0
 const PHI=(1+Math.sqrt(5))/2,IV=[],IE=[];[[0,1,PHI],[0,-1,PHI],[0,1,-PHI],[0,-1,-PHI]].forEach(([a,b,c])=>IV.push([a,b,c],[b,c,a],[c,a,b]));
 for(let i=0;i<12;i++)for(let j=i+1;j<12;j++){if(Math.abs(Math.hypot(IV[i][0]-IV[j][0],IV[i][1]-IV[j][1],IV[i][2]-IV[j][2])-2)<.01)IE.push([i,j])}
 // ---------- recuerdos dentro del cubo: videos fijos (no giran) sincronizados con la canción, con máscara elíptica de bordes gaussianos
-// t0 = segundo de la canción en que arranca cada video; d = duración aproximada en segundos (agrega una línea por video)
+// Los videos se encadenan: el primero entra en START (segundo de la canción) y cada uno siguiente empieza GAP segundos después de que termina el anterior.
+// Cada video sale una sola vez por vuelta de la canción. Para agregar uno: una línea más al final con su duración (d, en segundos).
+const START=25,GAP=6;
 const MEMS=[
-  {src:'video/recuerdo.mp4',t0:25,d:26.6},
-  {src:'video/1.mp4',t0:78,d:8.4},
-  {src:'video/2.mp4',t0:108,d:14},
-  {src:'video/3.mp4',t0:130,d:6.3},
-  {src:'video/4.mp4',t0:188,d:24.6},
-  {src:'video/5.mp4',t0:250,d:20.4}];
+  {src:'video/recuerdo.mp4',d:26.6},
+  {src:'video/1.mp4',d:8.4},
+  {src:'video/2.mp4',d:14},
+  {src:'video/3.mp4',d:6.3},
+  {src:'video/4.mp4',d:24.6},
+  {src:'video/5.mp4',d:20.4}];
+(()=>{let t=START;for(const m of MEMS){m.t0=t;t+=m.d+GAP}})();
 const MASKS={};
 function maskFor(cw,ch){const k=cw+'x'+ch;if(MASKS[k])return MASKS[k];const c=document.createElement('canvas');c.width=cw;c.height=ch;const g=c.getContext('2d'),im=g.createImageData(cw,ch);
   const erf=x=>{const t=1/(1+.3275911*Math.abs(x)),y=1-(((((1.061405429*t-1.453152027)*t)+1.421413741)*t-.284496736)*t+.254829592)*t*Math.exp(-x*x);return x>=0?y:-y};
