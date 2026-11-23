@@ -197,10 +197,32 @@ const cv=document.getElementById('net'),ctx=cv.getContext('2d');
 let pendingId=null,W=0,H=0,nodes=[],edges=[],pulses=[],traveler=null,imgs={},T=0;
 const PHI=(1+Math.sqrt(5))/2,IV=[],IE=[];[[0,1,PHI],[0,-1,PHI],[0,1,-PHI],[0,-1,-PHI]].forEach(([a,b,c])=>IV.push([a,b,c],[b,c,a],[c,a,b]));
 for(let i=0;i<12;i++)for(let j=i+1;j<12;j++){if(Math.abs(Math.hypot(IV[i][0]-IV[j][0],IV[i][1]-IV[j][1],IV[i][2]-IV[j][2])-2)<.01)IE.push([i,j])}
+// ---------- recuerdos dentro del cubo: videos fijos (no giran) sincronizados con la canción, con máscara elíptica de bordes gaussianos
+const MEMS=[{src:'video/recuerdo.mp4',t0:25}];   // t0 = segundo de la canción en que arranca cada video (agrega una línea por video)
+const MW=420,MH=280,MC=document.createElement('canvas'),MK=document.createElement('canvas');MC.width=MK.width=MW;MC.height=MK.height=MH;
+(function(){const c=MK.getContext('2d'),im=c.createImageData(MW,MH);
+  const erf=x=>{const t=1/(1+.3275911*Math.abs(x)),y=1-(((((1.061405429*t-1.453152027)*t)+1.421413741)*t-.284496736)*t+.254829592)*t*Math.exp(-x*x);return x>=0?y:-y};
+  for(let y=0;y<MH;y++)for(let x=0;x<MW;x++){const nx=(x+.5-MW/2)/(MW/2),ny=(y+.5-MH/2)/(MH/2),rho=Math.hypot(nx,ny),a=.5*(1-erf((rho-.58)/(.17*1.4142))),i=(y*MW+x)*4;im.data[i]=im.data[i+1]=im.data[i+2]=255;im.data[i+3]=Math.round(Math.max(0,Math.min(1,a))*255)}
+  c.putImageData(im,0,0)})();
+const MCx=MC.getContext('2d');
+MEMS.forEach(m=>{const v=document.createElement('video');v.muted=true;v.loop=false;v.playsInline=true;v.setAttribute('playsinline','');v.preload='auto';v.style.cssText='position:fixed;left:0;top:0;width:2px;height:2px;opacity:0;pointer-events:none;z-index:-1';document.body.appendChild(v);
+  v.addEventListener('error',()=>{if(!v.dataset.alt){v.dataset.alt='1';v.src='recuerdo.mp4'}});v.src=m.src;m.v=v});
+function drawMemory(cx,cy,R){let t=0;try{if(A.paused)return;t=A.currentTime}catch(e){return}
+  let m=null;for(const e of MEMS){const d=e.v.duration||26.6;if(t>=e.t0&&t<=e.t0+d+.2){m=e;break}}
+  MEMS.forEach(e=>{if(e!==m&&!e.v.paused)e.v.pause()});
+  if(!m)return;const v=m.v,d=v.duration||26.6,want=t-m.t0;if(v.readyState<2||!v.videoWidth)return;
+  if(Math.abs(v.currentTime-want)>.5)v.currentTime=Math.min(want,d-.05);if(v.paused)v.play().catch(()=>{});
+  const fade=Math.max(0,Math.min(1,want/1.2,(d-want)/1.5));if(fade<=0)return;
+  const mc=MCx;mc.globalCompositeOperation='source-over';mc.clearRect(0,0,MW,MH);
+  const vw=v.videoWidth,vh=v.videoHeight,k=Math.max(MW/vw,MH/vh),dw=vw*k,dh=vh*k;mc.drawImage(v,(MW-dw)/2,(MH-dh)/2,dw,dh);
+  mc.globalCompositeOperation='destination-in';mc.drawImage(MK,0,0);mc.globalCompositeOperation='source-over';
+  const w=Math.min(R*2.6,W*.9),h=w*MH/MW;
+  ctx.save();ctx.globalCompositeOperation='screen';ctx.globalAlpha=(.75+.15*pu)*fade;ctx.drawImage(MC,cx-w/2,cy-h/2,w,h);ctx.restore()}
 function drawCore(t){const cx=W/2,cy=H*.5,R=Math.min(W,H)*.2;
   ctx.save();ctx.translate(cx,cy);
   for(const [rr,sp] of [[1.55,.00008],[1.95,-.00005],[2.4,.00003]]){ctx.rotate(t*sp);ctx.strokeStyle='rgba(240,180,90,.10)';ctx.lineWidth=1;ctx.beginPath();ctx.arc(0,0,R*rr,0,7);ctx.stroke();ctx.setLineDash([2,9]);ctx.strokeStyle='rgba(240,180,90,.24)';ctx.beginPath();ctx.arc(0,0,R*rr*1.06,0,7);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle='rgba(240,180,90,.85)';ctx.beginPath();ctx.arc(R*rr,0,2.2,0,7);ctx.fill()}
   ctx.restore();
+  drawMemory(cx,cy,R);
   for(const [sc,dir,al] of [[1,1,.30],[.55,-1.4,.20]]){const ay=core.ay*dir,ax=core.ax*dir,k=R*sc/1.902;
     const pts=IV.map(([x,y,z])=>{const y1=y*Math.cos(ax)-z*Math.sin(ax),z1=y*Math.sin(ax)+z*Math.cos(ax),x2=x*Math.cos(ay)+z1*Math.sin(ay),z2=-x*Math.sin(ay)+z1*Math.cos(ay),f=1/(1-z2*.07);return[cx+x2*k*f,cy+y1*k*f,z2]});
     ctx.shadowColor='#f0b45a';ctx.shadowBlur=8+core.fl*24;ctx.lineWidth=1;
