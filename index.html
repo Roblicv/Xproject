@@ -116,26 +116,26 @@ let cloud=null,cloudMsgs=null,lastSent={},deferRebuild=false,memMe=null,memUndo=
 let mem=null;
 function load(){try{const r=localStorage.getItem(KEY);if(r)return JSON.parse(r);}catch(e){}return mem}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}mem=S;syncOut()}
-const SEED=`Juan Sebastian Morales
-Santiago Heredia Jimenez
+const SEED=`Juan Sebastián Morales
+Santiago Heredia Jiménez
 Sergio Serrano
-Sergio Martinez
-Tomas Gomez
+Sergio Martínez
+Tomás Gómez
 Daniel Urrea
 Mateo
 Katalina Muñoz
-Angie Paola Gomez
+Angie Paola Gómez
 Santiago Moreno Rozo
 Juan David Martínez
 Daniel Moreno Bonilla
 Karen Ortiz Trigos
-Cindy Lopez
+Cindy López
 Valentina Robledo Jiménez
 Daniel Ariza
-Andres Felipe Caballero
+Andrés Felipe Caballero
 Jorge Ardila
 Sergio Aldana`;
-let S=load()||{list:SEED,reg:{}};if(S.listV!==2){S.list=SEED;S.listV=2}S.msgs=S.msgs||[];S.seen=S.seen||0;
+let S=load()||{list:SEED,reg:{}};if(S.listV!==3){S.list=SEED;S.listV=3}S.msgs=S.msgs||[];S.seen=S.seen||0;
 const PROFILES=[
 {"k": "juan sebastian", "aliases": ["Morrales"], "sa": ["Morrales"], "rel": "Mi sobrino. Le ponía música clásica desde el vientre. Para que terminara en Theatron.", "fact": "Accionista minoritario de Theatron. No falta un fin de semana.", "dlabel": "Días sin bañarse", "danger": 50, "quote": "Va por el récord."},
 {"k": "santiago heredia", "aliases": ["Kakaioh", "KKs", "Santo", "Herencio"], "sa": ["Kakaioh", "KKs", "Santo", "Herencio"], "rel": "En la universidad corríamos de las cámaras de seguridad. Nadie nos perseguía. Ese era el nivel.", "fact": "Más competitivo que dos calvos por una ventana.", "dlabel": "Odio por su trabajo", "danger": 200, "quote": "Trabaja porque renunciar no paga."},
@@ -145,7 +145,7 @@ const PROFILES=[
 {"k": "daniel urrea", "aliases": ["Jammed"], "sa": ["Jammed"], "rel": "Nuestro momento más íntimo fue dándole al COD. Con cuate y así.", "fact": "Tiene más músculo en los brazos que un T. rex. Anatómicamente no era difícil, pero se valora.", "dlabel": "Orgullo que sentiría Ryan Castro", "danger": 100, "quote": "El bendito del gym."},
 {"k": "mateo", "aliases": [], "sa": ["Matheo", "Mate"], "rel": "El domingo 22 de noviembre. Ya tiene expediente. Así de eficiente soy.", "fact": "Le gana a Dani en casi todos los juegos. Hay músculos que no ayudan.", "dlabel": "Partidas guardadas de los demás", "danger": 100, "quote": "Donde otros lo dejan, él termina."},
 {"k": "katalina munoz", "aliases": ["Kabra"], "sa": ["Kabra", "Cata", "Catalina"], "rel": "Con dos litros de Néctar rojo de por medio. Ella vomitaba en el baño. Yo recopilaba información.", "fact": "Le quiere dar un besito a Rozo. El diminutivo busca disimular.", "dlabel": "Hijos que tendría con Hamilton si fuera colombiano", "danger": 100, "quote": "El obstáculo es migratorio."},
-{"k": "angie", "aliases": [], "sa": ["Angy", "Angi"], "rel": "En un drama parecido a La vendedora de rosas. Faltaron las rosas.", "fact": "La probabilidad de que se pelee con Voldemort es mayor de lo que crees. Ella debería preocuparse.", "dlabel": "Chiquita pero picosa", "danger": 990, "quote": "El tamaño claramente no regula el carácter."},
+{"k": "angie", "aliases": [], "sa": ["Angy", "Angi", "Paola"], "rel": "En un drama parecido a La vendedora de rosas. Faltaron las rosas.", "fact": "La probabilidad de que se pelee con Voldemort es mayor de lo que crees. Ella debería preocuparse.", "dlabel": "Chiquita pero picosa", "danger": 990, "quote": "El tamaño claramente no regula el carácter."},
 {"k": "santiago moreno", "aliases": ["Rozo"], "sa": ["Rozo"], "rel": "Uno de los mejores amigos de mi sobrino. Venía incluido en el paquete.", "fact": "Accionista minoritario de Theatron junto con Sebastián. Una sociedad con reuniones cada fin de semana.", "dlabel": "Ganas de agarrar a Katalina de la cadera", "danger": 580, "quote": "Hay reciprocidad en este expediente."},
 {"k": "juan david", "aliases": [], "sa": ["Juanda", "Juan Da"], "rel": "Formalmente, el cinco de septiembre. Otro sobrino. La familia crece sin consultarme.", "fact": "El techno corre por sus venas. O algo que suena parecido.", "dlabel": "Gusto por las maduras, las catanas", "danger": 990, "quote": "Respeta la experiencia."},
 {"k": "daniel moreno", "aliases": [], "sa": [], "rel": "Jugando cartas. Un sobrino más. Ya podría solicitar subsidio.", "fact": "Tanto colágeno y le gustan las profesoras. Tiene claras sus necesidades educativas.", "dlabel": "Esa cara de ingeniero me da la impresión…", "danger": 600, "quote": "Me reservo las conclusiones."},
@@ -381,7 +381,7 @@ function render(){document.getElementById('tabs').classList.remove('on');
   else if(step.n==='done'){const g=step.g;shell(`<div class="card" style="text-align:center"><h1>¡Confirmado, ${esc(g.name.split(' ')[0])}!</h1><p>Tu punto ya vive en la red. Nos vemos en la fiesta.</p><button class="btn" id="again">Nuevo registro</button></div>`);document.getElementById('again').onclick=()=>{step={n:'name'};render()}}
   else if(step.n==='ficha')renderFicha()}
 function loseSignal(g,cb){
-  const rg=S.reg[g.id]=S.reg[g.id]||{};rg.declinedAt=Date.now();rg.confirmedAt=null;rg.selfie=null;save();if(!ADMIN)setMe(g.id);rebuild();
+  const rg=S.reg[g.id]=S.reg[g.id]||{};rg.declinedAt=Date.now();rg.confirmedAt=null;rg.selfie=null;rg.plus=null;save();if(!ADMIN)setMe(g.id);rebuild();
   const nd=nodes.find(n=>n.id===g.id);if(nd)nd.flick=T+2600;
   const cap=document.getElementById('caption'),ui=document.getElementById('ui');ui.classList.add('hide');cap.classList.add('on');cap.textContent='Perdiendo señal…';
   setTimeout(()=>{cap.textContent='Nodo desconectado'},1400);
@@ -454,7 +454,7 @@ function openProfile(id){const g=guests.find(x=>x.id===id),rg=S.reg[id];if(!g||!
   m.innerHTML='<div class="card ficha" id="pcard"></div>';m.classList.add('on');
   mountFicha(document.getElementById('pcard'),g,rg.selfie,{extra:(msgOf(id)?'<div class="row2"><small>Mensaje</small><p class="qt">“'+esc(msgOf(id).text)+'”</p></div>':'')+'<button class="btn ghost" id="pcl">Cerrar</button>'});
   document.getElementById('pcl').onclick=()=>m.classList.remove('on');m.onclick=e=>{if(e.target===m)m.classList.remove('on')}}
-function statusCard(){const L=f=>guests.filter(g=>f(S.reg[g.id]||{})).map(g=>esc(g.name)).join(', ')||'—';return `<div class="card"><h2>Estado</h2><div class="row2"><small>Confirmados</small><span>${L(r=>r.confirmedAt)}</span></div><div class="row2"><small>No asisten</small><span>${L(r=>r.declinedAt)}</span></div><div class="row2"><small>Acompañantes</small><span>${guests.filter(g=>(S.reg[g.id]||{}).plus>0).map(g=>esc(g.name.split(' ')[0])+' +'+S.reg[g.id].plus).join(', ')||'—'}</span></div><div class="row2"><small>Liberar un registro (error o broma)</small>${guests.filter(g=>{const r=S.reg[g.id]||{};return r.confirmedAt||r.declinedAt||r.arrivedAt}).map(g=>`<button class="opt rel" data-id="${esc(g.id)}">${esc(g.name)} · liberar</button>`).join('')||'<span>—</span>'}</div><div class="row2"><small>Sin respuesta</small><span>${L(r=>!r.confirmedAt&&!r.declinedAt)}</span></div></div>`}
+function statusCard(){const L=f=>guests.filter(g=>f(S.reg[g.id]||{})).map(g=>esc(g.name)).join(', ')||'—';return `<div class="card"><h2>Estado</h2><div class="row2"><small>Confirmados</small><span>${L(r=>r.confirmedAt)}</span></div><div class="row2"><small>No asisten</small><span>${L(r=>r.declinedAt)}</span></div><div class="row2"><small>Acompañantes</small><span>${guests.filter(g=>epochOf(g.id)&&(S.reg[g.id]||{}).plus>0).map(g=>esc(g.name.split(' ').slice(0,2).join(' '))+' +'+S.reg[g.id].plus).join(', ')||'—'}</span></div><div class="row2"><small>Liberar un registro (error o broma)</small>${guests.filter(g=>{const r=S.reg[g.id]||{};return r.confirmedAt||r.declinedAt||r.arrivedAt}).map(g=>`<button class="opt rel" data-id="${esc(g.id)}">${esc(g.name)} · liberar</button>`).join('')||'<span>—</span>'}</div><div class="row2"><small>Sin respuesta</small><span>${L(r=>!r.confirmedAt&&!r.declinedAt)}</span></div></div>`}
 function renderList(){shell(`<div class="card"><h2>Lista de invitados</h2><p>Una línea por persona:<br><b>Nombre completo | apodos, separados, por coma | parentesco | dato curioso | peligro 0-100 | fotos (rutas, separadas por coma)</b></p><textarea id="ta">${esc(S.list)}</textarea><button class="btn" id="sv">Guardar lista</button><button class="btn ghost" id="rs">Borrar registros de prueba</button><div id="msg"></div></div>${statusCard()}`);
   document.querySelectorAll('.rel').forEach(b=>b.onclick=()=>release(b.dataset.id));document.getElementById('sv').onclick=()=>{S.list=document.getElementById('ta').value;guests=parseList(S.list);save();rebuild();document.getElementById('msg').innerHTML='<p style="margin-top:12px">Lista guardada: '+guests.length+' invitados.</p>'};
   document.getElementById('rs').onclick=()=>{if(cloud){document.getElementById('msg').innerHTML='<p style="margin-top:12px">Los registros viven en Firebase. Para borrarlos: consola de Firebase → Firestore → colección reg.</p>';return}S.reg={};save();rebuild();render()}}
