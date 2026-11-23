@@ -116,41 +116,50 @@ let cloud=null,cloudMsgs=null,lastSent={},deferRebuild=false,memMe=null,memUndo=
 let mem=null;
 function load(){try{const r=localStorage.getItem(KEY);if(r)return JSON.parse(r);}catch(e){}return mem}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}mem=S;syncOut()}
-const SEED=`Juan Sebastián Morales
-Santiago Heredia Jiménez
+const SEED=`Juan Sebastian Morales
+Santiago Heredia Jimenez
 Sergio Serrano
-Sergio Martínez
-Tomás
+Sergio Martinez
+Tomas Gomez
 Daniel Urrea
 Mateo
 Katalina Muñoz
-Angie
+Angie Paola Gomez
 Santiago Moreno Rozo
 Juan David Martínez
 Daniel Moreno Bonilla
 Karen Ortiz Trigos
-Cindy
-Valentina`;
-let S=load()||{list:SEED,reg:{}};S.msgs=S.msgs||[];S.seen=S.seen||0;
+Cindy Lopez
+Valentina Robledo Jiménez
+Daniel Ariza
+Andres Felipe Caballero
+Jorge Ardila
+Sergio Aldana`;
+let S=load()||{list:SEED,reg:{}};if(S.listV!==2){S.list=SEED;S.listV=2}S.msgs=S.msgs||[];S.seen=S.seen||0;
 const PROFILES=[
-{k:'sergio serrano',aliases:['Serranovsky','El Hippie'],sa:['Serranovsky','Hippie'],origen:'Bogotano',rel:'Compañero de yagé del cumpleañero',fact:'Se aplicó veneno de rana para "fortalecer su sistema inmune". Sigue entre nosotros; la ciencia lo investiga.',dlabel:'Nivel de peligro',danger:null,quote:'Nadie sabe qué circula por ese torrente sanguíneo.',chismes:['Su aura es oficialmente la más agradable del grupo. Certificada por él mismo.','Debilidad confirmada: las góticas. Sin excepciones.','Se hizo amigo del cumpleañero tomando yagé. Pregúntale cómo fue… si te atreves.']},
-{k:'santiago heredia',aliases:['Kakaioh','KKs','Santo','Herencio'],sa:['Kakaioh','KKs','Santo','Herencio'],origen:'Bogotano',rel:'Amigo de la universidad · 14 años de historia',fact:'Socio de la era youtuber: películas mentales huyendo de cámaras de seguridad.',dlabel:'Competitivo por naturaleza',danger:90,quote:'Perder no está en su vocabulario. Ni en su sistema digestivo.',chismes:['Creativo innato. Peligroso cuando se aburre.','Su momento más sólido como dúo: la era youtuber.','Tres jirafas y buenos amigos: ahí nacen las leyendas.']},
-{k:'juan sebastian',aliases:['Morrales'],sa:['Morrales'],origen:'Bogotano',rel:'Sobrino del cumpleañero',fact:'DJ y "accionista minoritario" de Theatron. Casi tiene silla propia.',dlabel:'Días sin bañarse',danger:50,quote:'A mitad de escala: el sillón de al lado aún es seguro.',chismes:['En Theatron lo saludan por el nombre. Y por el saldo.','Es DJ: si hoy algo suena mal, ya hay un sospechoso.','Aprendió casi todo de su tío. Se nota. Para bien y para mal.']},
-{k:'karen ortiz',aliases:['Mi amor','Preciosa'],sa:[],origen:'Cúcuta · N. de Santander',rel:'Novia del cumpleañero. Se conocieron el 18 de octubre.',fact:'Geóloga y científica de nacimiento. Inspiración de "La teoría de los dos cuerpos".',dlabel:'Pasos prohibidos',danger:100,quote:'Cuando ella baila, el reglamento deja de aplicar.',chismes:['Supremamente amorosa. Esa es la parte más peligrosa.','Estudia rocas y lleva semanas estudiando al cumpleañero. Resultados: prometedores.','Desde el 18 de octubre, geóloga oficial de este proyecto.']},
-{k:'sergio martinez',aliases:['Raptor'],sa:['Raptor']},
-{k:'tomas',aliases:['IamPortal'],sa:['IamPortal','Tomi']},
-{k:'katalina munoz',aliases:['Kabra'],sa:['Kabra','Cata','Catalina']},
-{k:'daniel urrea',aliases:[],sa:[]},
-{k:'mateo',aliases:[],sa:['Matheo','Mate']},
-{k:'angie',aliases:[],sa:['Angy','Angi']},
-{k:'santiago moreno',aliases:[],sa:[]},
-{k:'juan david',aliases:[],sa:['Juanda','Juan Da']},
-{k:'daniel moreno',aliases:[],sa:[]},
-{k:'cindy',aliases:[],sa:['Cindi','Sindy','Sindi']},
-{k:'valentina',aliases:[],sa:['Valen','Vale']}];
+{"k": "juan sebastian", "aliases": ["Morrales"], "sa": ["Morrales"], "rel": "Mi sobrino. Le ponía música clásica desde el vientre. Para que terminara en Theatron.", "fact": "Accionista minoritario de Theatron. No falta un fin de semana.", "dlabel": "Días sin bañarse", "danger": 50, "quote": "Va por el récord."},
+{"k": "santiago heredia", "aliases": ["Kakaioh", "KKs", "Santo", "Herencio"], "sa": ["Kakaioh", "KKs", "Santo", "Herencio"], "rel": "En la universidad corríamos de las cámaras de seguridad. Nadie nos perseguía. Ese era el nivel.", "fact": "Más competitivo que dos calvos por una ventana.", "dlabel": "Odio por su trabajo", "danger": 200, "quote": "Trabaja porque renunciar no paga."},
+{"k": "sergio serrano", "aliases": ["Serranovsky", "El Hippie"], "sa": ["Serranovsky", "Hippie"], "rel": "Nos acercó el yahé, de 10 p. m. a 7 a. m. Después se metió veneno de rana. Le faltaba vomitar.", "fact": "Le gustan más las góticas que la changua.", "dlabel": "Torrente sanguíneo", "danger": null, "vtxt": "SIN IDENTIFICAR", "quote": "Contenido sin identificar."},
+{"k": "sergio martinez", "aliases": ["Raptor"], "sa": ["Raptor"], "rel": "Drunken Fox, por allá en 2022. La confianza llegó asando carne y tinturándonos el pelo. Ambos bajo supervisión cuestionable.", "fact": "Nunca tiene una excusa. Dice que va y aparece. Un fenómeno poco estudiado.", "dlabel": "Poder gamer", "danger": null, "vtxt": "DESCONOCIDO", "quote": "Está ocultando estadísticas."},
+{"k": "tomas", "aliases": ["IamPortal"], "sa": ["IamPortal", "Tomi"], "rel": "El año pasado. En agosto íbamos a hacer tomas con dron. Terminamos tomando nosotros, en Kinder.", "fact": "Destruye un batallón solo en COD. Los compañeros están de adorno.", "dlabel": "Días para perder la virginidad", "danger": null, "vtxt": "MUY PRONTO", "quote": "Talento hay, falta coordinar agendas."},
+{"k": "daniel urrea", "aliases": ["Jammed"], "sa": ["Jammed"], "rel": "Nuestro momento más íntimo fue dándole al COD. Con cuate y así.", "fact": "Tiene más músculo en los brazos que un T. rex. Anatómicamente no era difícil, pero se valora.", "dlabel": "Orgullo que sentiría Ryan Castro", "danger": 100, "quote": "El bendito del gym."},
+{"k": "mateo", "aliases": [], "sa": ["Matheo", "Mate"], "rel": "El domingo 22 de noviembre. Ya tiene expediente. Así de eficiente soy.", "fact": "Le gana a Dani en casi todos los juegos. Hay músculos que no ayudan.", "dlabel": "Partidas guardadas de los demás", "danger": 100, "quote": "Donde otros lo dejan, él termina."},
+{"k": "katalina munoz", "aliases": ["Kabra"], "sa": ["Kabra", "Cata", "Catalina"], "rel": "Con dos litros de Néctar rojo de por medio. Ella vomitaba en el baño. Yo recopilaba información.", "fact": "Le quiere dar un besito a Rozo. El diminutivo busca disimular.", "dlabel": "Hijos que tendría con Hamilton si fuera colombiano", "danger": 100, "quote": "El obstáculo es migratorio."},
+{"k": "angie", "aliases": [], "sa": ["Angy", "Angi"], "rel": "En un drama parecido a La vendedora de rosas. Faltaron las rosas.", "fact": "La probabilidad de que se pelee con Voldemort es mayor de lo que crees. Ella debería preocuparse.", "dlabel": "Chiquita pero picosa", "danger": 990, "quote": "El tamaño claramente no regula el carácter."},
+{"k": "santiago moreno", "aliases": ["Rozo"], "sa": ["Rozo"], "rel": "Uno de los mejores amigos de mi sobrino. Venía incluido en el paquete.", "fact": "Accionista minoritario de Theatron junto con Sebastián. Una sociedad con reuniones cada fin de semana.", "dlabel": "Ganas de agarrar a Katalina de la cadera", "danger": 580, "quote": "Hay reciprocidad en este expediente."},
+{"k": "juan david", "aliases": [], "sa": ["Juanda", "Juan Da"], "rel": "Formalmente, el cinco de septiembre. Otro sobrino. La familia crece sin consultarme.", "fact": "El techno corre por sus venas. O algo que suena parecido.", "dlabel": "Gusto por las maduras, las catanas", "danger": 990, "quote": "Respeta la experiencia."},
+{"k": "daniel moreno", "aliases": [], "sa": [], "rel": "Jugando cartas. Un sobrino más. Ya podría solicitar subsidio.", "fact": "Tanto colágeno y le gustan las profesoras. Tiene claras sus necesidades educativas.", "dlabel": "Esa cara de ingeniero me da la impresión…", "danger": 600, "quote": "Me reservo las conclusiones."},
+{"k": "karen ortiz", "aliases": ["Mi amor", "Preciosa"], "sa": [], "rel": "Hace un mes. Mi novia, mi mujer. Le gustan mis ojos. Buen criterio.", "fact": "Tiene los ojos más lindos. Uno de cada cien, según un estudio realizado por mí.", "dlabel": "¿Qué tan enculada estará?", "danger": 1000, "quote": "La segunda mejor parte de la fiesta. Después de mí."},
+{"k": "cindy", "aliases": [], "sa": ["Cindi", "Sindy", "Sindi"], "rel": "La novia de Herencio. Eche, no joaaaaaa. Así quedó registrada.", "fact": "Prepara unos huevos con arroz bastante buenos. Hay credenciales.", "dlabel": "Retención de Santiago hasta las 3 a. m.", "danger": null, "vtxt": "EN SUS MANOS", "quote": "Se le asignó una sola misión."},
+{"k": "valentina", "aliases": [], "sa": ["Valen", "Vale"], "rel": "La prima de Herencio. Yo la emborraché por primera vez. Un aporte a su biografía.", "fact": "Sé con qué famoso se casaría, a cuál mataría y a cuál besaría. Información archivada.", "dlabel": "¿Sí saben quién es JK, verdad?", "danger": 999990, "quote": "Ella puede dar la conferencia."},
+{"k": "daniel ariza", "aliases": ["Nash"], "sa": ["Nash"], "rel": "En Drunken Fox. Iba con su morra. Él, muy elocuente. Yo, tomando nota.", "fact": "Le gustan más las cojas que a Serrano las góticas. La competencia era exigente.", "dlabel": "Gusto por las trans", "danger": 1000, "quote": "Tampoco se le quedan atrás."},
+{"k": "andres caballero", "aliases": [], "sa": ["Andres", "Felipe"], "rel": "Con cuates e historias de su ex. Había material para varias temporadas.", "fact": "Es tan ñoño que ya tiene novia. Hay esperanza para la comunidad científica.", "dlabel": "Otro sobrino con quien compartir experiencias", "danger": 1000, "quote": "Este parentesco sí promete."},
+{"k": "jorge ardila", "aliases": [], "sa": [], "rel": "En la universidad, pero nos unió D&D. Socializar requería personajes ficticios.", "fact": "Siempre crea personajes asesinos. La sutileza no le suma puntos de experiencia.", "dlabel": "Narrador de historias", "danger": 1000, "quote": "Uno hasta le cree cuando dice «una partida corta»."},
+{"k": "sergio aldana", "aliases": ["Yolo"], "sa": ["Yolo"], "rel": "En mi primer trabajo. Disparábamos azúcar y agua con sal. Había sueldo de por medio.", "fact": "La Nacional lo graduó de parchólogo profesional. Por fin una carrera con aplicación diaria.", "dlabel": "Tamaño del corazón", "danger": 1000, "quote": "Su perrita puede dar referencias."}];
 function profileFor(name){const n=norm(name).split(' ');return PROFILES.find(p=>p.k.split(' ').every(t=>n.includes(t)))||{}}
+const LEGACY={tomasgomez:'tomas',angiepaolagomez:'angie',cindylopez:'cindy',valentinarobledojimenez:'valentina'};
 function parseList(txt){return parseList0(txt).map(g=>Object.assign(g,{danger:null,fact:'Expediente en construcción',dlabel:'Nivel de peligro',chismes:[],origen:'',quote:''},profileFor(g.name)))}
-function parseList0(txt){return txt.split('\n').map(l=>l.trim()).filter(Boolean).map((l,i)=>{const p=l.split('|').map(x=>x.trim());return{id:'g'+i+'_'+norm(p[0]).replace(/ /g,''),name:p[0],aliases:(p[1]||'').split(',').map(x=>x.trim()).filter(Boolean),rel:p[2]||'Invitado especial',fact:p[3]||'Información clasificada',danger:Math.max(0,Math.min(100,parseInt(p[4])||50)),photos:(p[5]||'').split(',').map(x=>x.trim()).filter(Boolean)}})}
+function parseList0(txt){return txt.split('\n').map(l=>l.trim()).filter(Boolean).map((l,i)=>{const p=l.split('|').map(x=>x.trim());return{id:'g'+i+'_'+(LEGACY[norm(p[0]).replace(/ /g,'')]||norm(p[0]).replace(/ /g,'')),name:p[0],aliases:(p[1]||'').split(',').map(x=>x.trim()).filter(Boolean),rel:p[2]||'Invitado especial',fact:p[3]||'Información clasificada',danger:Math.max(0,Math.min(100,parseInt(p[4])||50)),photos:(p[5]||'').split(',').map(x=>x.trim()).filter(Boolean)}})}
 let guests=parseList(S.list);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
@@ -416,12 +425,12 @@ function slug(g){return norm(g.name).split(' ').slice(0,2).join('-')}
 function gallery(g){const u=(g.photos&&g.photos[0])||('fotos/'+slug(g)+'-1.jpg');
   const fail="var e=['jpg','webp','png','jpeg'],t=+(this.dataset.t||0)+1;if(t<e.length){this.dataset.t=t;this.src=this.src.replace(/\\.[a-z]+$/,'.'+e[t])}else{var w=this.closest('.gwrap');if(w)w.remove()}";
   return `<div class="row2 gwrap" style="display:none"><small>Archivo · un momento contigo</small><div class="gal"><figure class="ph"><img src="${esc(u)}" alt="" onload="this.closest('.gwrap').style.display='block'" onerror="${fail}"></figure></div></div>`}
-function meterHTML(g){const unk=g.danger==null;return `<div class="row2"><small>${esc(g.dlabel)}</small>${unk?'<div class="bar unk"><i></i></div><div class="val">DESCONOCIDO</div>':`<div class="bar"><i class="dg" data-v="${g.danger}"></i></div><div class="val">${Math.round(g.danger/10)}/10</div>`}${g.quote?`<p class="qt">“${esc(g.quote)}”</p>`:''}</div>`}
+function meterHTML(g){const unk=g.danger==null;return `<div class="row2"><small>${esc(g.dlabel)}</small>${unk?`<div class="bar unk"><i></i></div><div class="val">${esc(g.vtxt||'DESCONOCIDO')}</div>`:`<div class="bar"><i class="dg" data-v="${Math.min(100,g.danger)}"></i></div><div class="val">${g.danger/10}/10</div>`}${g.quote?`<p class="qt">${esc(g.quote)}</p>`:''}</div>`}
 function chismesHTML(g){if(!g.chismes||!g.chismes.length)return'';return `<div class="row2"><small>Chismes · toca para desclasificar</small>${g.chismes.map(c=>`<button class="ch"><span class="lock">▒▒▒▒ CLASIFICADO ▒▒▒▒</span><span class="tx">${esc(c)}</span></button>`).join('')}<p class="chdone" style="display:none">Archivo completo. Ahora ve y pregúntaselo en persona.</p></div>`}
 function fichaInner(g,selfie,o){
   const head=`<div class="top">${o.scanning?`<div class="scan"><img src="${selfie}" alt=""></div>`:`<img src="${selfie}" alt="">`}<div><h1 style="margin:0">${esc(g.name)}</h1><div class="chips">${g.aliases.map(a=>`<span class="chip">${esc(a)}</span>`).join('')}${g.origen?`<span class="chip">${esc(g.origen)}</span>`:''}</div><div class="mono" id="mono">${o.scanning?'':'> Identidad verificada'}</div></div></div>`;
   if(o.scanning)return head;
-  return head+`<div class="row2"><small>Relación con el cumpleañero</small><span>${esc(g.rel)}</span></div><div class="row2"><small>Dato clasificado</small><span>${esc(g.fact)}</span></div>${meterHTML(g)}${chismesHTML(g)}${gallery(g)}${o.surprise?`<p style="margin:6px 0 0">${o.retract?'Dijiste que no venías… y aquí estás. Expediente actualizado.':'Aparece en la lista, pero no había confirmado antes. ¡Invitado sorpresa!'}</p>`:''}`}
+  return head+`<div class="row2"><small>Cómo nos conocimos</small><span>${esc(g.rel)}</span></div><div class="row2"><small>Dato clasificado</small><span>${esc(g.fact)}</span></div>${meterHTML(g)}${o.surprise?`<p style="margin:6px 0 0">${o.retract?'Dijiste que no venías… y aquí estás. Expediente actualizado.':'Aparece en la lista, pero no había confirmado antes. ¡Invitado sorpresa!'}</p>`:''}`}
 function mountFicha(el,g,selfie,o){el.innerHTML=fichaInner(g,selfie,o)+(o.extra||'');
   el.querySelectorAll('.ch').forEach(b=>b.onclick=()=>{b.classList.toggle('open');const all=[...el.querySelectorAll('.ch')],d=el.querySelector('.chdone');if(d)d.style.display=all.every(x=>x.classList.contains('open'))?'block':'none'});
   setTimeout(()=>el.querySelectorAll('.dg').forEach(b=>b.style.width=b.dataset.v+'%'),120);
