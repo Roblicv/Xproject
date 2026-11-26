@@ -214,14 +214,23 @@ function maskFor(cw,ch){const k=cw+'x'+ch;if(MASKS[k])return MASKS[k];const c=do
   const erf=x=>{const t=1/(1+.3275911*Math.abs(x)),y=1-(((((1.061405429*t-1.453152027)*t)+1.421413741)*t-.284496736)*t+.254829592)*t*Math.exp(-x*x);return x>=0?y:-y};
   for(let y=0;y<ch;y++)for(let x=0;x<cw;x++){const nx=(x+.5-cw/2)/(cw/2),ny=(y+.5-ch/2)/(ch/2),rho=Math.hypot(nx,ny),a=.5*(1-erf((rho-.58)/(.17*1.4142))),i=(y*cw+x)*4;im.data[i]=im.data[i+1]=im.data[i+2]=255;im.data[i+3]=Math.round(Math.max(0,Math.min(1,a))*255)}
   g.putImageData(im,0,0);return MASKS[k]=c}
-MEMS.forEach(m=>{const v=document.createElement('video');v.muted=true;v.loop=false;v.playsInline=true;v.setAttribute('playsinline','');v.preload='auto';v.style.cssText='position:fixed;left:0;top:0;width:2px;height:2px;opacity:0;pointer-events:none;z-index:-1';document.body.appendChild(v);
-  v.addEventListener('error',()=>{if(!v.dataset.alt&&!m.src.startsWith('data:')){v.dataset.alt='1';v.src=m.src.replace('video/','')}});m.v=v;m.cv=document.createElement('canvas');m.g=m.cv.getContext('2d')});
+// Un solo <video> reutilizado para todos los clips: en iPhone/Android basta con que el primer toque lo "desbloquee" y después puede cambiar de clip solo.
+const MV=document.createElement('video');MV.muted=true;MV.defaultMuted=true;MV.loop=false;MV.playsInline=true;MV.setAttribute('playsinline','');MV.setAttribute('webkit-playsinline','');MV.preload='auto';
+MV.style.cssText='position:fixed;left:0;top:0;width:4px;height:4px;opacity:.01;pointer-events:none;z-index:-1';document.body.appendChild(MV);
+let mvIdx=-1,mvReady=false,mvBusy=false;
+MEMS.forEach(m=>{m.cv=document.createElement('canvas');m.g=m.cv.getContext('2d')});
+function primeMem(){if(mvBusy)return;mvBusy=true;const pr=MV.play();   // arranca mudo un instante para que el navegador descargue y deje listo el primer cuadro
+  if(pr&&pr.then)pr.then(()=>{MV.pause();try{MV.currentTime=0}catch(e){}mvReady=true;mvBusy=false}).catch(()=>{mvReady=false;mvBusy=false});else{mvReady=true;mvBusy=false}}
+function loadClip(i){const m=MEMS[i];mvIdx=i;mvReady=false;mvBusy=false;MV.dataset.alt='';MV.src=m.src;MV.load();primeMem()}
+MV.addEventListener('error',()=>{const m=MEMS[mvIdx];if(m&&!MV.dataset.alt&&!m.src.startsWith('data:')){MV.dataset.alt='1';MV.src=m.src.replace('video/','');MV.load();mvReady=false;mvBusy=false;primeMem()}});
+['pointerup','click','touchend','keydown'].forEach(ev=>addEventListener(ev,()=>{if(mvIdx<0)loadClip(0);else if(!mvReady&&!mvBusy)primeMem()},{passive:true}));
 function drawMemory(cx,cy,R){let t=0;try{if(A.paused)return;t=A.currentTime}catch(e){return}
-  for(const e of MEMS)if(!e.v.getAttribute('src')&&t>=e.t0-12&&t<=e.t0+e.d+30)e.v.src=e.src;   // cada video se descarga poco antes de su turno
-  let m=null;for(const e of MEMS){const d=e.v.duration||e.d;if(t>=e.t0&&t<=e.t0+d+.2){m=e;break}}
-  MEMS.forEach(e=>{if(e!==m&&!e.v.paused)e.v.pause()});
-  if(!m)return;const v=m.v,d=v.duration||m.d,want=t-m.t0;if(v.readyState<2||!v.videoWidth)return;
-  if(Math.abs(v.currentTime-want)>.5)v.currentTime=Math.min(want,d-.05);if(v.paused)v.play().catch(()=>{});
+  let m=null,mi=-1;MEMS.forEach((e,i)=>{if(t>=e.t0&&t<=e.t0+e.d+.2){m=e;mi=i}});
+  let target=mi;if(target<0)MEMS.forEach((e,i)=>{if(target<0&&e.t0>t&&e.t0-t<=8)target=i});   // el clip activo, o el que entra en menos de 8 s
+  if(target>=0&&target!==mvIdx)loadClip(target);
+  if(!m){if(!MV.paused)MV.pause();return}
+  const v=MV;if(mvIdx!==mi||v.readyState<2||!v.videoWidth){if(mvIdx===mi&&v.paused&&!mvReady)primeMem();return}
+  const d=m.d,want=t-m.t0;if(Math.abs(v.currentTime-want)>.5){try{v.currentTime=Math.min(want,(v.duration||d)-.05)}catch(e){}}if(v.paused)v.play().catch(()=>{});
   const fade=Math.max(0,Math.min(1,want/1.2,(d-want)/1.5));if(fade<=0)return;
   const vw=v.videoWidth,vh=v.videoHeight,ca=Math.min(Math.max(vw/vh,.67),1.5),cw=ca>=1?420:Math.round(420*ca),ch=ca>=1?Math.round(420/ca):420;
   if(m.cv.width!==cw||m.cv.height!==ch){m.cv.width=cw;m.cv.height=ch}
