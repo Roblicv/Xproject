@@ -66,6 +66,16 @@ textarea{min-height:240px;font-size:13px;font-family:ui-monospace,Menlo,monospac
 .mine-actions{display:flex;gap:6px;margin-bottom:16px}.mine-actions button{flex:1;padding:11px 6px;font:600 10px "Cinzel",serif;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--line);background:transparent;color:var(--cy);border-radius:0}.mine-actions .danger{border-color:rgba(255,93,115,.6);color:#ff8fa0}.mine-actions #pcl{flex:0 0 42px;font-size:14px;color:var(--tx)}
 .ld{display:inline-flex;gap:3px;margin-left:5px;vertical-align:middle}.ld i{width:4px;height:4px;border-radius:50%;background:var(--cy);opacity:.2;animation:ldp 1s ease-in-out infinite}.ld i:nth-child(2){animation-delay:.18s}.ld i:nth-child(3){animation-delay:.36s}@keyframes ldp{0%,100%{opacity:.2;transform:translateY(0)}40%{opacity:1;transform:translateY(-2px)}}.ok{color:var(--cy)}
 .sal-row{display:flex;gap:8px}.sal-row .btn{flex:1;font-size:11px;padding:12px 6px}.sal-media{display:block;width:100%;max-height:60vh;object-fit:contain;margin-top:12px;border:1px solid var(--line);background:#000}#smsg{text-align:left;min-height:14px;color:#ff8fa0}
+#rdy{position:fixed;inset:0;z-index:9;display:none;align-items:center;justify-content:center;background:radial-gradient(ellipse at center,rgba(0,0,0,.84),rgba(0,0,0,.95));padding:20px}#rdy.on{display:flex}
+.rbox{text-align:center;max-width:420px}.rt{font:700 14px "Cinzel",serif;letter-spacing:.4em;margin-right:-.4em;color:var(--cy);margin-bottom:18px}
+.rq{font:700 54px "Cinzel",serif;color:#fff;text-shadow:0 0 28px rgba(240,180,90,.7);margin-bottom:28px}
+#rbtn{padding:20px 56px;font:700 22px "Cinzel",serif;letter-spacing:.3em;text-indent:.3em;border:2px solid var(--cy);background:rgba(240,180,90,.12);color:var(--cy);border-radius:0;animation:bp 1.6s ease-in-out infinite}
+.rs{margin-top:24px;font:12px "IBM Plex Mono",monospace;letter-spacing:.12em;color:var(--mu)}
+#go{position:fixed;inset:0;z-index:11;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.9);pointer-events:none}
+#go.on{display:flex;animation:goBg 3.8s ease forwards}@keyframes goBg{0%{opacity:0}6%{opacity:1}68%{opacity:1}100%{opacity:0}}
+.gotxt{font:700 clamp(38px,17vw,150px) "Cinzel",serif;letter-spacing:.08em;color:#fff;text-shadow:0 0 28px #f0b45a,0 0 90px #f0b45a;animation:goSlam .7s cubic-bezier(.2,.9,.2,1) both,goJit .14s steps(2) 8 .7s}
+@keyframes goSlam{0%{transform:scale(3.4);filter:blur(16px);opacity:0}100%{transform:scale(1);filter:blur(0);opacity:1}}@keyframes goJit{50%{transform:translate(3px,-3px)}}
+@media (prefers-reduced-motion:reduce){.gotxt{animation:none}#go.on{animation-duration:2.4s}#rbtn{animation:none}}
 .stats{display:flex;gap:8px}.stats div{flex:1;text-align:center;background:var(--card);border:1px solid var(--line);border-radius:2px;padding:8px 4px;font-size:10px;color:var(--mu)}.stats b{display:block;font-size:20px;color:var(--cy)}
 #caption{position:fixed;left:0;right:0;bottom:calc(8% + env(safe-area-inset-bottom,0px));text-align:center;z-index:2;font-family:"Cinzel",sans-serif;text-transform:uppercase;font-size:13px;letter-spacing:.2em;color:var(--cy);text-shadow:0 0 14px var(--cy);opacity:0;transition:opacity .3s;padding:0 16px}
 #caption.on{opacity:1}
@@ -98,7 +108,9 @@ textarea{min-height:240px;font-size:13px;font-family:ui-monospace,Menlo,monospac
 <div id="ui"></div>
 <div id="tabs"><button id="tp">MI PERFIL</button><button id="tm">MI MENSAJE</button></div>
 <div id="wl"><div class="wbox mini"><div class="whead"><b>TU MENSAJE</b><span></span><button id="wx" aria-label="Cerrar">✕</button></div><div id="wbody"></div></div></div>
+<div id="rdy"><div class="rbox"><div class="rt">PROYECTO X</div><div class="rq" id="rq">¿LISTO?</div><button id="rbtn">READY</button><div class="rs" id="rs"></div></div></div>
 <div id="boot"><div class="bt">PROYECTO X</div><div class="bs">RED DE INVITADOS · 28 NOV</div><div class="bm" id="bl"></div><button id="bgo">INICIAR</button><div class="bn">con sonido</div></div>
+<div id="go"><div class="gotxt">EMPIEZA</div></div>
 <div id="caption"></div>
 <div id="cam">
   <video id="vid" autoplay playsinline muted></video>
@@ -270,7 +282,7 @@ const GL=Array.from({length:170},()=>{const r=Math.random;return{a:r()*6.283,rho
 function sizeFx(){const f=document.getElementById('fx');if(!f)return;const d=Math.min(devicePixelRatio||1,2);f.width=W*d;f.height=H*d;f.getContext('2d').setTransform(d,0,0,d,0,0)}
 function drawDisco(t){
   if(!FX){FX=document.getElementById('fx');FXc=FX.getContext('2d')}
-  const c=FXc;c.clearRect(0,0,W,H);if(disco<.01)return;
+  const c=FXc;c.clearRect(0,0,W,H);drawParty(c,t);if(disco<.01)return;
   const cx=W/2,cy=H*.5,D=Math.hypot(W,H)/2,rot=t*.00018;
   c.globalCompositeOperation='lighter';
   if(pu>.55){c.fillStyle='rgba(255,226,170,'+disco*(pu-.55)*.12+')';c.fillRect(0,0,W,H)}
@@ -284,7 +296,7 @@ function drawDisco(t){
   c.globalCompositeOperation='source-over'}
 const core={ay:0,ax:0,vy:0,vx:0,fl:0,last:0,cue:0};
 let drag=null;const CR=()=>Math.min(W,H)*.2;
-function stepCore(t){const dt=Math.min(50,t-(core.last||t));core.last=t;core.cue+=(cueNow()-core.cue)*Math.min(1,dt/140);disco+=(discoNow()-disco)*Math.min(1,dt/120);
+function stepCore(t){const dt=Math.min(50,t-(core.last||t));core.last=t;core.cue+=(cueNow()-core.cue)*Math.min(1,dt/140);GOS.k+=(GOS.target-GOS.k)*Math.min(1,dt/650);disco+=(discoNow()-disco)*Math.min(1,dt/120);
   if(drag){const h=Math.exp(-dt/120);core.vy*=h;core.vx*=h}
   else{core.ay+=(.00025+core.vy+core.cue*.001)*dt;core.ax+=(.00017+core.vx+core.cue*.0006)*dt;const f=Math.exp(-dt/900);core.vy*=f;core.vx*=f}
   core.fl=Math.max(core.fl*Math.exp(-dt/350),core.cue*.9)}
@@ -320,12 +332,15 @@ function rebuild(extra){
   const LP=layoutPoints(guests.length);
   guests.forEach((g,i)=>{const x=LP[i][0]/W,y=LP[i][1]/H;
     const rg=S.reg[g.id],decl=!!(rg&&rg.declinedAt),lit=!decl&&!!(rg&&rg.selfie&&(rg.confirmedAt||rg.arrivedAt))&&g.id!==pendingId;
-    nodes.push({x,y,ph:x*9,vis:1,glow:0,id:g.id,img:rg&&rg.selfie,dormant:!lit&&!decl,declined:decl,arrived:!!(rg&&rg.arrivedAt)})});
+    nodes.push({x,y,ph:x*9,vis:1,glow:0,id:g.id,gi:i,img:rg&&rg.selfie,dormant:!lit&&!decl,declined:decl,arrived:!!(rg&&rg.arrivedAt)})});
   edges=[];const seen=new Set();
   nodes.forEach((a,i)=>{const d=nodes.map((b,j)=>({j,d:i===j?9:Math.hypot((a.x-b.x)*W/H,a.y-b.y)})).sort((p,q)=>p.d-q.d).slice(0,3);for(const o of d){const k=Math.min(i,o.j)+'-'+Math.max(i,o.j);if(!seen.has(k)){seen.add(k);edges.push([i,o.j])}}});
   pulses=Array.from({length:14},()=>({e:Math.floor(Math.random()*edges.length),t:Math.random(),v:.004+Math.random()*.006}));
 }
-const P=n=>({x:n.x*W+Math.sin(T*.0007+n.ph)*5,y:n.y*H+Math.cos(T*.0006+n.ph)*5});
+const P=n=>{const bx=n.x*W+Math.sin(T*.0007+n.ph)*5,by=n.y*H+Math.cos(T*.0006+n.ph)*5;
+  if(GOS.k>.001&&n.gi!==undefined){const ring=n.gi%3,Rm=Math.min(W,H)*.2,rx=Math.min(W*.46,Math.max(Rm*(1.55+ring*.5),W*(.2+.07*ring))),ry=Math.min(H*.4,Math.max(Rm*(1.55+ring*.5),H*(.17+.05*ring))),a=n.gi*2.3999+T*(.00026+ring*.00006)*(ring%2?-1:1),k=ease(Math.min(1,GOS.k));
+    return{x:bx+(W/2+Math.cos(a)*rx-bx)*k,y:by+(H/2+Math.sin(a)*ry-by)*k}}
+  return{x:bx,y:by}};
 const ease=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
 function clipImg(src,x,y,r,a){const im=getImg(src);if(!im.complete||!im.naturalWidth)return;ctx.save();ctx.globalAlpha=a;ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.clip();ctx.drawImage(im,x-r,y-r,2*r,2*r);ctx.restore()}
 function frame(t){
@@ -401,11 +416,12 @@ const ui=document.getElementById('ui');
 const ADMIN=location.hash==='#llegada';
 let mode=ADMIN?'arrive':'confirm',step={n:'name'};
 const stats=()=>{const c=Object.values(S.reg).filter(r=>r.confirmedAt).length,a=Object.values(S.reg).filter(r=>r.arrivedAt).length,d=Object.values(S.reg).filter(r=>r.declinedAt).length,v=Object.values(S.reg).filter(r=>r.confirmedAt||r.arrivedAt).length,pl=Object.values(S.reg).reduce((t,r)=>t+((r.confirmedAt||r.arrivedAt)?(r.plus||0):0),0);return `<div class="stats"><div><b>${guests.length}</b>invitados</div><div><b>${c}</b>confirmados</div><div><b>${a}</b>presentes</div><div><b>${d}</b>no van</div><div><b>${v+pl}</b>personas</div></div>`}
-function shell(inner){ui.innerHTML=`<nav style="${ADMIN?'':'display:none'}"><button data-m="confirm" class="${mode==='confirm'?'on':''}">Confirmar</button><button data-m="arrive" class="${mode==='arrive'?'on':''}">Llegada</button><button data-m="list" class="${mode==='list'?'on':''}">Lista</button></nav>${ADMIN?stats():''}${inner}`;
+function shell(inner){ui.innerHTML=`<nav style="${ADMIN?'':'display:none'}"><button data-m="confirm" class="${mode==='confirm'?'on':''}">Confirmar</button><button data-m="arrive" class="${mode==='arrive'?'on':''}">Llegada</button><button data-m="list" class="${mode==='list'?'on':''}">Lista</button><button data-m="event" class="${mode==='event'?'on':''}">Evento</button></nav>${ADMIN?stats():''}${inner}`;
   ui.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{mode=b.dataset.m;step={n:'name'};document.body.classList.toggle('tablet',mode==='arrive');render()})}
 function render(){document.getElementById('tabs').classList.remove('on');
   document.body.classList.toggle('tablet',mode==='arrive');
   if(mode==='list')return renderList();
+  if(mode==='event')return renderEvent();
   const arrive=mode==='arrive';
   if(step.n==='name'){if(!ADMIN&&lockedUI())return;renderPick(arrive);return}
   if(step.n==='name'){shell(`<div class="card"><h1>${arrive?'Registro de llegada':'Confirma tu asistencia'}</h1><p>${arrive?'Escribe tu nombre para entrar a la red.':'Escribe tu nombre (con apodo o apellido basta) y tómate una selfie.'}</p><input type="text" id="nm" placeholder="Tu nombre" autocomplete="off" autocapitalize="words"><button class="btn" id="go">Continuar</button><div id="msg"></div></div>`);
@@ -621,6 +637,43 @@ function openSalForm(g){const wl=document.getElementById('wl'),b=document.getEle
 function openSalView(id){const g=guests.find(x=>x.id===id),sg=salOf(id);if(!g||!sg)return;let m=document.getElementById('prof');if(!m){m=document.createElement('div');m.id='prof';document.body.appendChild(m)}
   m.innerHTML='<div class="card ficha" id="pcard"><h1>Saludo desde lejos</h1><div class="chips"><span class="chip">'+esc(g.name)+'</span></div>'+(sg.text?'<p class="qt" style="font-size:19px">“'+esc(sg.text)+'”</p>':'')+(sg.photo?'<img class="sal-media" src="'+sg.photo+'" alt="">':'')+(sg.video?'<video class="sal-media" src="'+sg.video+'" controls playsinline></video>':'')+'<button class="btn ghost" id="pcl">Cerrar</button></div>';
   m.classList.add('on');const close=()=>{m.querySelectorAll('video').forEach(v=>v.pause());m.classList.remove('on')};document.getElementById('pcl').onclick=close;m.onclick=e=>{if(e.target===m)close()}}
+// ---------- EVENTO "Arranca Proyecto X": los asistentes dan READY, el máster (tablet) da EMPIEZA
+const RM=!!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);   // quien lo tenga activado no ve destellos
+let EV={fase:'espera',ronda:0,ts:0},READY={},cloudEv=null,evInit=true,evConfirm=0;
+const GOS={k:0,target:0},PARTY={parts:[],end:0,flashEnd:0,nextFlash:0,flash:0,last:0,flashes:0},CONF=['#f0b45a','#ffffff','#be96ff','#7ff0e0','#ffd98a'];
+function burstConfetti(n){const cx=W/2,cy=H*.5;for(let i=0;i<n&&PARTY.parts.length<380;i++){const a=Math.random()*6.283,sp=.15+Math.random()*.55;PARTY.parts.push({x:cx,y:cy,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-.25,r:Math.random()*6.28,vr:(Math.random()-.5)*.02,w:4+Math.random()*6,h:7+Math.random()*9,c:CONF[i%CONF.length]})}}
+function drawParty(c,t){const dt=Math.min(50,PARTY.last?t-PARTY.last:16);PARTY.last=t;const now=performance.now();
+  if(PARTY.end&&now<PARTY.end-2500&&!RM&&PARTY.parts.length<380)for(let i=0;i<Math.max(1,Math.round(dt/22));i++)PARTY.parts.push({x:Math.random()*W,y:-12,vx:(Math.random()-.5)*.12,vy:.06+Math.random()*.12,r:Math.random()*6.28,vr:(Math.random()-.5)*.016,w:4+Math.random()*6,h:7+Math.random()*9,c:CONF[Math.floor(Math.random()*CONF.length)]});
+  if(PARTY.parts.length){for(const p of PARTY.parts){p.vy+=.0005*dt;p.vx*=.999;p.x+=p.vx*dt;p.y+=p.vy*dt;p.r+=p.vr*dt;c.save();c.translate(p.x,p.y);c.rotate(p.r);c.fillStyle=p.c;c.fillRect(-p.w/2,-p.h/2,p.w,p.h);c.restore()}
+    PARTY.parts=PARTY.parts.filter(p=>p.y<H+30&&p.x>-40&&p.x<W+40)}
+  // destello de cámara en toda la pantalla: nunca más de 3 por segundo (límite de seguridad para sensibilidad a la luz)
+  if(PARTY.flashEnd&&now<PARTY.flashEnd&&!RM&&now>=PARTY.nextFlash){PARTY.flash=1;PARTY.flashes++;PARTY.nextFlash=now+350+Math.random()*550}
+  PARTY.flash*=Math.exp(-dt/95);if(PARTY.flash>.02){c.save();c.fillStyle='rgba(255,252,240,'+PARTY.flash*.82+')';c.fillRect(0,0,W,H);c.restore()}}
+function startGo(burst){if(!burst){GOS.target=1;return}
+  const el=document.getElementById('go');el.classList.remove('on');void el.offsetWidth;el.classList.add('on');
+  const now=performance.now();PARTY.end=now+14000;PARTY.flashEnd=RM?0:now+12000;PARTY.nextFlash=now+150;PARTY.flashes=0;burstConfetti(RM?40:170);setTimeout(()=>{GOS.target=1},1200)}
+function stopGo(){GOS.target=0;PARTY.end=0;PARTY.flashEnd=0;PARTY.parts=[];document.getElementById('go').classList.remove('on')}
+function applyEstado(e,initial){const prev=EV.fase;EV=e;
+  if(e.fase==='go'){if(prev!=='go')startGo(!initial||(Date.now()-e.ts<8000))}else if(prev==='go')stopGo();
+  updateReadyUI();refreshEvent()}
+function setFase(f){const ronda=f==='listo'?EV.ronda+1:EV.ronda;
+  if(cloudEv)cloudEv.doc('estado').set({fase:f,ronda,ts:firebase.firestore.FieldValue.serverTimestamp()}).catch(()=>{});else applyEstado({fase:f,ronda,ts:Date.now()},false)}
+function myAttending(){if(ADMIN)return null;const g=guests.find(x=>x.id===myId());return g&&epochOf(g.id)?g:null}
+function updateReadyUI(){const el=document.getElementById('rdy'),g=myAttending();if(EV.fase!=='listo'||!g){el.classList.remove('on');return}
+  const done=READY[g.id]===EV.ronda;el.classList.add('on');document.getElementById('rq').textContent=done?'LISTO ✓':'¿LISTO?';document.getElementById('rbtn').style.display=done?'none':'inline-block';
+  document.getElementById('rs').textContent=done?'Esperando a que el máster dé la orden…':'Cuando todos estén listos, empieza.'}
+document.getElementById('rbtn').onclick=()=>{const g=myAttending();if(!g)return;
+  if(cloudEv)cloudEv.doc('listo_'+g.id).set({by:g.id,ronda:EV.ronda,ts:firebase.firestore.FieldValue.serverTimestamp()}).catch(()=>{});else{READY[g.id]=EV.ronda;updateReadyUI()}};
+function renderEvent(){const att=guests.filter(g=>epochOf(g.id)),miss=att.filter(g=>READY[g.id]!==EV.ronda),n=att.length-miss.length,f=EV.fase,pct=att.length?Math.round(100*n/att.length):0,arm=Date.now()-evConfirm<4000;
+  shell(`<div class="card"><h2>Arranca Proyecto X</h2><p>Estado: <b style="color:var(--cy)">${f==='espera'?'EN ESPERA':f==='listo'?'PIDIENDO READY':'EN MARCHA'}</b></p>${f==='listo'?`<div class="bar"><i style="width:${pct}%"></i></div><div class="val">${n} / ${att.length} LISTOS</div><p class="note" style="margin-bottom:12px">Faltan: ${miss.map(g=>esc(g.name.split(' ').slice(0,2).join(' '))).join(', ')||'nadie'}</p>`:''}<button class="btn ghost" id="e1">${f==='listo'?'Volver a pedir READY':'Pedir READY a todos'}</button><button class="btn" id="e2" ${f==='go'?'disabled':''}>${arm?'¿SEGURO? TOCA DE NUEVO':'EMPIEZA'}</button><button class="btn ghost" id="e3">Reiniciar (volver al grid)</button></div>`);
+  document.getElementById('e1').onclick=()=>setFase('listo');
+  document.getElementById('e2').onclick=()=>{if(Date.now()-evConfirm<4000){evConfirm=0;setFase('go')}else{evConfirm=Date.now();renderEvent();setTimeout(()=>{if(mode==='event')renderEvent()},4100)}};
+  document.getElementById('e3').onclick=()=>setFase('espera')}
+function refreshEvent(){if(ADMIN&&mode==='event')renderEvent()}
+function subEvento(fsd){const col=fsd.collection('evento');cloudEv=col;
+  col.onSnapshot(snap=>{const init=evInit;evInit=false;snap.docChanges().forEach(ch=>{if(ch.type==='removed')return;const id=ch.doc.id,d=ch.doc.data({serverTimestamps:'estimate'});
+    if(id==='estado')applyEstado({fase:d.fase,ronda:d.ronda||0,ts:d.ts&&d.ts.toMillis?d.ts.toMillis():Date.now()},init);else if(id.startsWith('listo_'))READY[d.by]=d.ronda});
+    updateReadyUI();refreshEvent()},()=>{cloudEv=null})}
 function startCloud(){if(typeof firebase==='undefined')return;
   try{firebase.initializeApp(FB);
     firebase.auth().signInAnonymously().then(()=>{const fsd=firebase.firestore(),col=fsd.collection('reg');
@@ -633,7 +686,7 @@ function startCloud(){if(typeof firebase==='undefined')return;
         else chs.forEach(c=>{const id=c.doc.id;if(c.type==='removed'){delete S.reg[id];delete lastSent[id]}else{S.reg[id]=c.doc.data();lastSent[id]=JSON.stringify(S.reg[id])}});
         try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}
         if(traveler)deferRebuild=true;else rebuild();refreshStats()},()=>{cloud=null});
-      cloud=col;syncOut();subMsgs(fsd);subSal(fsd)}).catch(()=>{cloud=null})}catch(e){cloud=null}}
+      cloud=col;syncOut();subMsgs(fsd);subSal(fsd);subEvento(fsd)}).catch(()=>{cloud=null})}catch(e){cloud=null}}
 startCloud();
 setInterval(()=>{const d=new Date(),q=n=>String(n).padStart(2,'0');document.getElementById('clk').textContent=q(d.getHours())+':'+q(d.getMinutes())+':'+q(d.getSeconds());document.getElementById('hl').textContent=cloud?'● EN LÍNEA':'○ LOCAL';document.getElementById('cnt').textContent='NODOS '+Object.values(S.reg).filter(r=>r.confirmedAt||r.arrivedAt).length+'/'+guests.length;updateCD()},500);
 rebuild();render();requestAnimationFrame(frame);
